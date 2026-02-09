@@ -43,12 +43,12 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final VisionSubsytem vision = new VisionSubsytem();
     public final ShooterSubsytem shooter = new ShooterSubsytem();
-    //public final IntakeSubsytem intake = new IntakeSubsytem();
+    public final IntakeSubsystem intake = new IntakeSubsystem();
 
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
     private double leftY()  { return driverController.getRawAxis(1); } // LS Y
     private double rightX() { return driverController.getRawAxis(5); } // RS X
-    private double rightY() { return driverController.getRawAxis(5); } // RS Y
+    //private double rightY() { return driverController.getRawAxis(5); } // RS Y
 
     final int SPEAKER_TAG = 7;      // change to your tag
     final double RANGE_M = 2.0;     // stop at 2 meters
@@ -75,10 +75,10 @@ public class RobotContainer {
             )
         );
         //need to make sure these are right
-        JoystickButton TRI = new JoystickButton(driverController, 4);
-        JoystickButton O = new JoystickButton(driverController, 3);
-        JoystickButton X = new JoystickButton(driverController, 2);
-        JoystickButton SQAR = new JoystickButton(driverController, 1);
+        JoystickButton squareButton = new JoystickButton(driverController, 1);
+        JoystickButton xButton = new JoystickButton(driverController, 2);
+        JoystickButton oButton = new JoystickButton(driverController, 3);
+        JoystickButton triangleButton = new JoystickButton(driverController, 4);
 
         //Need to find the # for this one
         JoystickButton leftBumper = new JoystickButton(driverController, 5);
@@ -92,8 +92,8 @@ public class RobotContainer {
         );
 
 
-        X.whileTrue(drivetrain.applyRequest(() -> brake));
-        SQAR.whileTrue(drivetrain.applyRequest(() ->
+        xButton.whileTrue(drivetrain.applyRequest(() -> brake));
+        squareButton.whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-leftY(), -leftX()))
         ));
 
@@ -111,7 +111,7 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        O.whileTrue(
+        oButton.whileTrue(
             new DriveIntoRange(
                 drivetrain, 
                 vision, 
@@ -123,9 +123,9 @@ public class RobotContainer {
                 MaxAngularRate)
         );
 
-        TRI.whileTrue(new Shoot(shooter,8));
+        triangleButton.whileTrue(new Shoot(shooter,8));
 
-        //X.whileTrue(IntakeOn.create(intake, 3, 6));
+        rightBumper.whileTrue(IntakeOn.create(intake, 3, 6));
     }
 
     public Command getAutonomousCommand() {
