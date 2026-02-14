@@ -123,7 +123,7 @@ public class RobotContainer {
                 MaxAngularRate)
         );
 
-        triangleButton.whileTrue(new Shoot(shooter,8));
+        triangleButton.whileTrue(new Shoot(shooter, 12));
 
         rightBumper.whileTrue(IntakeOn.create(intake, 3, 6));
     }

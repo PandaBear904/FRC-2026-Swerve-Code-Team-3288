@@ -15,16 +15,11 @@ import static frc.robot.Constants.ShooterConstants.*;
 
 public class ShooterSubsytem extends SubsystemBase {
     private final SparkMax shooterMotor;
-    private final SparkMax feederMotor;
     private final RelativeEncoder shooterEncoder;
-    private final RelativeEncoder feederEncoder;
 
     public ShooterSubsytem(){
         shooterMotor = new SparkMax(shooterID, MotorType.kBrushless);
-        feederMotor = new SparkMax(feederID, MotorType.kBrushless);
         shooterEncoder = shooterMotor.getEncoder();
-        feederEncoder = feederMotor.getEncoder();
-
 
         SparkMaxConfig shootConfig = new SparkMaxConfig();
         shootConfig.idleMode(IdleMode.kCoast);
@@ -33,32 +28,22 @@ public class ShooterSubsytem extends SubsystemBase {
         shootConfig.openLoopRampRate(1); //Smooth spin-up, helps brownouts
 
         shooterMotor.configure(shootConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
-
-        SparkMaxConfig feederConfig = new SparkMaxConfig();
-        feederConfig.idleMode(IdleMode.kCoast);
-        feederConfig.smartCurrentLimit(40);
-        feederConfig.inverted(true);
-        feederConfig.openLoopRampRate(1); //Smooth spin-ip, helps brownouts
     }
 
     @Override
     public void periodic(){
         double shooterRPM = shooterEncoder.getVelocity();
-        double feederRPM = feederEncoder.getVelocity();
 
         SmartDashboard.putNumber("Shooter RPM", shooterRPM);
-        SmartDashboard.putNumber("Feeder RPM", feederRPM);
     }
 
     //Set the voltage for the shooter
     public void setVoltage(double voltage){
         shooterMotor.setVoltage(voltage);
-        feederMotor.setVoltage(voltage - 2);
     }
 
     public void stopShooter(){
         shooterMotor.set(0);
-        feederMotor.set(0);
     }
 
     public Command spinVolts(double volts) {
