@@ -11,20 +11,17 @@ public final class Constants {
     //Can change on the Driver Station
     public static final int driverPort = 0; 
     public static final int operatorPort = 1;
-
-    //Theses slow down the robot
-    public static final double forwardSpeed = 0.7;
-    public static final double turnSpeed = 0.8;
-
-    //Forward and Turning Axis
-    public static final int forwardAxis = 0;
-    public static final int turnAxis = 1;
   }
 
   public static class ShooterConstants {
     //Motor CAN ID
     public static final int shooterLeaderID = 14;
     public static final int shooterFollowerID = 15;
+  }
+
+  public static class AgitatorConstants {
+    public static final int agitatorLeftID = 16;
+    public static final int agitatorRightID = 17;
   }
 
   public static class VisionConstants{

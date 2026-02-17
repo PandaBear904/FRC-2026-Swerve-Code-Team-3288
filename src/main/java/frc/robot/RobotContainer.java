@@ -18,7 +18,9 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.commands.DriveIntoRange;
 import frc.robot.commands.IntakeOn;
 import frc.robot.commands.Shoot;
+import frc.robot.commands.Agitator;
 import frc.robot.generated.TunerConstants;
+import frc.robot.subsystems.AgitatorSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.VisionSubsytem;
@@ -43,11 +45,12 @@ public class RobotContainer {
     public final VisionSubsytem vision = new VisionSubsytem();
     public final ShooterSubsystemCTRE shooter = new ShooterSubsystemCTRE();
     public final IntakeSubsystem intake = new IntakeSubsystem();
+    public final AgitatorSubsystem agitator = new AgitatorSubsystem();
 
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
     private double leftY()  { return driverController.getRawAxis(1); } // LS Y
     private double rightX() { return driverController.getRawAxis(5); } // RS X
-    //private double rightY() { return driverController.getRawAxis(5); } // RS Y
+    //private double rightY() { return driverController.getRawAxis(6); } // RS Y
 
     final int SPEAKER_TAG = 7;      // change to your tag
     final double RANGE_M = 2.0;     // stop at 2 meters
@@ -124,7 +127,7 @@ public class RobotContainer {
 
         triangleButton.whileTrue(new Shoot(shooter, 4000));
 
-        rightBumper.whileTrue(IntakeOn.create(intake, 3, 6));
+        rightBumper.whileTrue(new Agitator(agitator, 6.0));
     }
 
     public Command getAutonomousCommand() {
