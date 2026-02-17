@@ -23,8 +23,8 @@ public final class Constants {
 
   public static class ShooterConstants {
     //Motor CAN ID
-    public static final int feederID = 14;
-    public static final int shooterID = 15;
+    public static final int shooterLeaderID = 14;
+    public static final int shooterFollowerID = 15;
   }
 
   public static class VisionConstants{

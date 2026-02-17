@@ -1,72 +1,86 @@
 package frc.robot.subsystems;
 
+import static frc.robot.Constants.ShooterConstants.shooterFollowerID;
+import static frc.robot.Constants.ShooterConstants.shooterLeaderID;
+
+import com.ctre.phoenix6.configs.TalonFXConfiguration;
+import com.ctre.phoenix6.controls.Follower;
+import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.MotorAlignmentValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
+
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
-import com.ctre.phoenix6.configs.CurrentLimitsConfigs;
-import com.ctre.phoenix6.configs.MotorOutputConfigs;
-import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VoltageOut;
-import com.ctre.phoenix6.hardware.TalonFX;
-import com.ctre.phoenix6.signals.InvertedValue;
-import com.ctre.phoenix6.signals.NeutralModeValue;
-
-import static frc.robot.Constants.ShooterConstants.*;
-
 public class ShooterSubsystemCTRE extends SubsystemBase {
-    private final TalonFX shooter;
+    private final TalonFX shooterLeader;
+    private final TalonFX shooterFollower;
 
-    private final VoltageOut voltageReq = new VoltageOut(0);
+    private final VelocityVoltage velocityReq = new VelocityVoltage(0);
+
     
     public ShooterSubsystemCTRE(){
-        shooter = new TalonFX(shooterID, "rio");
+        shooterLeader = new TalonFX(shooterLeaderID, "rio");
+        shooterFollower = new TalonFX(shooterFollowerID, "rio");
 
         TalonFXConfiguration cfg = new TalonFXConfiguration();
 
-        MotorOutputConfigs out = new MotorOutputConfigs();
-        out.NeutralMode = NeutralModeValue.Coast;
+        cfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        cfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
-        out.Inverted = InvertedValue.Clockwise_Positive;
-        cfg.MotorOutput = out;
+        // Current limits
+        cfg.CurrentLimits.SupplyCurrentLimitEnable = true;
+        cfg.CurrentLimits.SupplyCurrentLimit = 40;
 
-        CurrentLimitsConfigs current = new CurrentLimitsConfigs();
-        current.SupplyCurrentLimitEnable = true;
-        current.SupplyCurrentLimit = 40;
-        cfg.CurrentLimits = current;
+        // Velocity Control gain (NEED TO CHANGE!!!!!!!!!!!!!)
+        cfg.Slot0.kP = 0.12;
+        cfg.Slot0.kI = 0.0;
+        cfg.Slot0.kD = 0.0;
+        cfg.Slot0.kV = 0.12;
 
-        shooter.getConfigurator().apply(cfg);
+        // Apply config to motors
+        shooterLeader.getConfigurator().apply(cfg);
+        shooterFollower.getConfigurator().apply(cfg);
+        
+        shooterFollower.setControl(
+            new Follower(shooterLeader.getDeviceID(), MotorAlignmentValue.Aligned)
+        );
     }
 
     @Override
     public void periodic() {
-        double shooterRPS = shooter.getVelocity().getValueAsDouble();
+        double shooterRPS = shooterLeader.getVelocity().getValueAsDouble();
         double shooterRPM = shooterRPS * 60.0;
 
         SmartDashboard.putNumber("Shooter RPM", shooterRPM);
     }
 
-    public void setVoltage(double volts){
-        shooter.setControl(voltageReq.withOutput(volts));
+    public void setRPM(double rpm){
+        double rps = rpm / 60.0;
+        shooterLeader.setControl(velocityReq.withVelocity(rps));
     }
 
     public void stopShooter(){
-        shooter.setControl(voltageReq.withOutput(0.0));
+        shooterLeader.stopMotor();
     }
 
-    public Command spinVolts(double volts) {
+    public Command spinRPM(double rpm) {
         return this.startEnd(
-            () -> setVoltage(volts),
+            () -> setRPM(rpm),
             this::stopShooter
-        ).withName("ShooterSpinVolts");
+        ).withName("ShooterSpinRPM");
     }
 
     public Command stopCommand() {
         return this.runOnce(this::stopShooter).withName("ShooterStop");
     }
 
-    public Command toggleVolts(double volts){
-        return this.runOnce(() -> setVoltage(volts))
-            .withName("ShooterToggleVolts");
+    public Command toggleRPM(double rpm){
+        return this.runOnce(() -> setRPM(rpm))
+            .withName("ShooterToggleRPM");
     } 
 }

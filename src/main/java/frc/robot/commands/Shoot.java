@@ -1,15 +1,15 @@
 package frc.robot.commands;
 
 import edu.wpi.first.wpilibj2.command.Command;
-import frc.robot.subsystems.ShooterSubsytem;
+import frc.robot.subsystems.ShooterSubsystemCTRE;
 
 public class Shoot extends Command {
-    private final ShooterSubsytem shooter;
-    private final double volts;
+    private final ShooterSubsystemCTRE shooter;
+    private final double rpm;
 
-    public Shoot(ShooterSubsytem shooter, double volts){
+    public Shoot(ShooterSubsystemCTRE shooter, double rpm){
         this.shooter = shooter;
-        this.volts = volts;
+        this.rpm = rpm;
         addRequirements(shooter);
     }
 
@@ -18,7 +18,7 @@ public class Shoot extends Command {
 
     @Override
     public void execute(){
-        shooter.setVoltage(volts);
+        shooter.setRPM(rpm);
     }
 
     @Override
