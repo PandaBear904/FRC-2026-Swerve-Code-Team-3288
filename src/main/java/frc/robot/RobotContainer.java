@@ -125,7 +125,7 @@ public class RobotContainer {
                 MaxAngularRate)
         );
 
-        triangleButton.whileTrue(new Shoot(shooter, 4000));
+        triangleButton.whileTrue(shooter.shootWhenReady(4000, 0.6));
 
         rightBumper.whileTrue(new Agitator(agitator, 6.0));
     }

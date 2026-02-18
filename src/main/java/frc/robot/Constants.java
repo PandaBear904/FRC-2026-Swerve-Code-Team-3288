@@ -17,11 +17,14 @@ public final class Constants {
     //Motor CAN ID
     public static final int shooterLeaderID = 14;
     public static final int shooterFollowerID = 15;
+    public static final int kickerID = 16;
+    public static final double shooterTargetRPM = 4000.0;
+    public static final double shooterRPMTolerance = 200;
   }
 
   public static class AgitatorConstants {
-    public static final int agitatorLeftID = 16;
-    public static final int agitatorRightID = 17;
+    public static final int agitatorLeftID = 17;
+    public static final int agitatorRightID = 18;
   }
 
   public static class VisionConstants{
@@ -37,8 +40,8 @@ public final class Constants {
   }
 
   public static class IntakeConstats {
-    public static final int intakeMoveID = 16;
-    public static final int intakeOnID = 17;
+    public static final int intakeMoveID = 19;
+    public static final int intakeOnID = 20;
     public static final int limitSwitch = 0;
   }
 
