@@ -72,10 +72,6 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
 
     @Override
     public void periodic() {
-        double shooterRPS = shooterLeader.getVelocity().getValueAsDouble();
-        double shooterRPM = shooterRPS * 60.0;
-
-
         SmartDashboard.putNumber("Shooter RPM", getShooterRPM());
         SmartDashboard.putBoolean("Shooter At 4000", shooterAtRPM(shooterTargetRPM));
     }
