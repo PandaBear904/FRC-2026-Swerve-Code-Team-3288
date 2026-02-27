@@ -120,13 +120,16 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
         Trigger atSpeed = new Trigger(() -> shooterAtRPM(rpm)).debounce(0.10);
 
         return Commands.parallel(
-            // Keep shooter spinning the whole time
+            // Shooter branch (requires this subsystem)
             this.run(() -> setRPM(rpm)),
 
-            // Kicker stays off until we're at speed (debounced)
+            // Kicker branch (NO requirements -> avoids parallel conflict)
             Commands.sequence(
                 Commands.waitUntil(atSpeed),
-                this.run(() -> kick(kickerPower))
+                Commands.runEnd(
+                    () -> kick(kickerPower),
+                    this::stopKicker
+                )
             )
         )
         .finallyDo(interrupted -> {
