@@ -54,12 +54,14 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
         cfg.Slot0.kD = 0.0;
         cfg.Slot0.kV = 0.12;
 
+        cfg.ClosedLoopRamps.VoltageClosedLoopRampPeriod = 1.0;
+
         // Apply config to motors
         shooterLeader.getConfigurator().apply(cfg);
         shooterFollower.getConfigurator().apply(cfg);
         
         shooterFollower.setControl(
-            new Follower(shooterLeader.getDeviceID(), MotorAlignmentValue.Aligned)
+            new Follower(shooterLeader.getDeviceID(), MotorAlignmentValue.Opposed)
         );
 
         SparkFlexConfig kickerConfig = new SparkFlexConfig();
