@@ -16,13 +16,13 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.commands.DriveIntoRange;
-import frc.robot.commands.IntakeOn;
+//import frc.robot.commands.IntakeOn;
 import frc.robot.commands.Shoot;
 import frc.robot.commands.Agitator;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AgitatorSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.IntakeSubsystem;
+//import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.VisionSubsytem;
 import frc.robot.subsystems.ShooterSubsystemCTRE;
 
@@ -44,7 +44,7 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final VisionSubsytem vision = new VisionSubsytem();
     public final ShooterSubsystemCTRE shooter = new ShooterSubsystemCTRE();
-    public final IntakeSubsystem intake = new IntakeSubsystem();
+    //public final IntakeSubsystem intake = new IntakeSubsystem();
     public final AgitatorSubsystem agitator = new AgitatorSubsystem();
 
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
