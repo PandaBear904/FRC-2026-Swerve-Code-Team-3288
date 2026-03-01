@@ -4,7 +4,9 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.*;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -15,15 +17,15 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
-import frc.robot.commands.DriveIntoRange;
-//import frc.robot.commands.IntakeOn;
 import frc.robot.commands.Agitator;
+import frc.robot.commands.DriveIntoRange;
+import frc.robot.commands.IntakeOn;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AgitatorSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-//import frc.robot.subsystems.IntakeSubsystem;
-import frc.robot.subsystems.VisionSubsytem;
+import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystemCTRE;
+import frc.robot.subsystems.VisionSubsytem;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -43,7 +45,7 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     public final VisionSubsytem vision = new VisionSubsytem();
     public final ShooterSubsystemCTRE shooter = new ShooterSubsystemCTRE();
-    //public final IntakeSubsystem intake = new IntakeSubsystem();
+    public final IntakeSubsystem intake = new IntakeSubsystem();
     public final AgitatorSubsystem agitator = new AgitatorSubsystem();
 
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
@@ -87,6 +89,9 @@ public class RobotContainer {
         JoystickButton leftTrigger = new JoystickButton(driverController, 7);
         JoystickButton rightTrigger = new JoystickButton(driverController, 8);
 
+        JoystickButton shareButton = new JoystickButton(driverController, 9);
+        JoystickButton optionsButton = new JoystickButton(driverController, 10);
+
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
@@ -95,8 +100,8 @@ public class RobotContainer {
         );
 
 
-        xButton.whileTrue(drivetrain.applyRequest(() -> brake));
-        squareButton.whileTrue(drivetrain.applyRequest(() ->
+        shareButton.whileTrue(drivetrain.applyRequest(() -> brake));
+        optionsButton.whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-leftY(), -leftX()))
         ));
 
@@ -125,6 +130,8 @@ public class RobotContainer {
                 MaxSpeed, 
                 MaxAngularRate)
         );
+
+        xButton.whileTrue(IntakeOn.create(intake, 3.0, 6.0));
 
         rightTrigger.whileTrue(shooter.shootWhenReady(6000, 0.6));
 

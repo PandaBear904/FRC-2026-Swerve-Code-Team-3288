@@ -34,7 +34,7 @@ public class IntakeSubsystem extends SubsystemBase {
     }
 
     public boolean intakeOut() {
-        return intakeMoveLimit.get();
+        return !intakeMoveLimit.get();
     }
 
     public void runIntakeMove(double volts){

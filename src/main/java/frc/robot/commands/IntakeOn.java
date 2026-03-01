@@ -10,9 +10,13 @@ public class IntakeOn {
             Commands.run(() -> sub.runIntakeMove(outSpeed), sub)
                 .until(sub::intakeOut),
 
-            Commands.runOnce(sub::stopIntakeOut),
+            Commands.runOnce(sub::stopIntakeOut, sub),
 
-            Commands.run(() -> sub.runIntakeOn(onSpeed), sub)
+            Commands.startEnd(
+                () -> sub.runIntakeOn(onSpeed), 
+                sub::stopIntake,
+                sub
+                )
         );
     }
     
