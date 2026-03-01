@@ -17,7 +17,6 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.commands.DriveIntoRange;
 //import frc.robot.commands.IntakeOn;
-import frc.robot.commands.Shoot;
 import frc.robot.commands.Agitator;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AgitatorSubsystem;
@@ -85,6 +84,8 @@ public class RobotContainer {
         //Need to find the # for this one
         JoystickButton leftBumper = new JoystickButton(driverController, 5);
         JoystickButton rightBumper = new JoystickButton(driverController, 6);
+        JoystickButton leftTrigger = new JoystickButton(driverController, 7);
+        JoystickButton rightTrigger = new JoystickButton(driverController, 8);
 
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
@@ -109,7 +110,7 @@ public class RobotContainer {
         */
 
         // Reset the field-centric heading on left bumper press.
-        leftBumper.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+        triangleButton.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
@@ -125,9 +126,15 @@ public class RobotContainer {
                 MaxAngularRate)
         );
 
-        triangleButton.whileTrue(shooter.shootWhenReady(4000, 0.6));
+        rightTrigger.whileTrue(shooter.shootWhenReady(6000, 0.6));
 
         rightBumper.whileTrue(new Agitator(agitator, 6.0));
+
+        leftBumper.whileTrue(new Agitator(agitator, -6.0));
+
+        leftTrigger.whileTrue(shooter.shootWhenReady(-3000, -0.3));
+
+
     }
 
     public Command getAutonomousCommand() {
