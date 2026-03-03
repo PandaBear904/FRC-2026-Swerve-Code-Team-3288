@@ -1,25 +1,30 @@
 package frc.robot.subsystems;
 
-import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import com.revrobotics.spark.SparkMax;
+import static frc.robot.Constants.IntakeConstats.intakeMoveID;
+import static frc.robot.Constants.IntakeConstats.intakeOnID;
+import static frc.robot.Constants.IntakeConstats.limitSwitchDown;
+import static frc.robot.Constants.IntakeConstats.limitSwitchUp;
+
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
+import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkMaxConfig;
 
 import edu.wpi.first.wpilibj.DigitalInput;
-
-import static frc.robot.Constants.IntakeConstats.*;
+import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class IntakeSubsystem extends SubsystemBase {
     private final SparkMax intakeMove;
     private final SparkMax intakeOn;
-    private final DigitalInput intakeMoveLimit;
+    private final DigitalInput intakeLimitDown;
+    private final DigitalInput intakeLimitUp;
 
     public IntakeSubsystem(){
         intakeMove = new SparkMax(intakeMoveID, MotorType.kBrushless);
         intakeOn = new SparkMax(intakeOnID, MotorType.kBrushless);
-        intakeMoveLimit = new DigitalInput(limitSwitch);
+        intakeLimitDown = new DigitalInput(limitSwitchDown);
+        intakeLimitUp = new DigitalInput(limitSwitchUp);
 
         SparkMaxConfig intakeMoveConfig = new SparkMaxConfig();
         intakeMoveConfig.smartCurrentLimit(40);
@@ -33,8 +38,14 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeOn.configure(intakeOnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
-    public boolean intakeOut() {
-        return !intakeMoveLimit.get();
+    // true when the DOWN limit switch is physically pressed
+    public boolean isDownLimitPressed() {
+        return !intakeLimitDown.get();
+    }
+
+    // true when the UP limit switch is physically pressed
+    public boolean isUpLimitPressed() {
+        return !intakeLimitUp.get(); 
     }
 
     public void runIntakeMove(double volts){
@@ -45,11 +56,11 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeOn.setVoltage(volts);
     }
     
-    public void stopIntakeOut(){
-        intakeMove.set(0);
+    public void stopMove() {
+        intakeMove.stopMotor();
     }
 
-    public void stopIntake(){
-        intakeOn.set(0);
+    public void stopOn() {
+        intakeOn.stopMotor();
     }
 }

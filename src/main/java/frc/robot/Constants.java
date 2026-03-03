@@ -42,7 +42,8 @@ public final class Constants {
   public static class IntakeConstats {
     public static final int intakeMoveID = 19;
     public static final int intakeOnID = 20;
-    public static final int limitSwitch = 0;
+    public static final int limitSwitchDown = 0;
+    public static final int limitSwitchUp = 1;
   }
 
 }

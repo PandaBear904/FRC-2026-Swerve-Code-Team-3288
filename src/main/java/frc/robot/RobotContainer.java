@@ -19,7 +19,7 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.commands.Agitator;
 import frc.robot.commands.DriveIntoRange;
-import frc.robot.commands.IntakeOn;
+import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AgitatorSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -131,7 +131,7 @@ public class RobotContainer {
                 MaxAngularRate)
         );
 
-        xButton.whileTrue(IntakeOn.create(intake, 3.0, 6.0));
+        xButton.whileTrue(IntakeCommands.downThenRoller(intake, -6.0, 8.0));
 
         rightTrigger.whileTrue(shooter.shootWhenReady(6000, 0.6));
 
