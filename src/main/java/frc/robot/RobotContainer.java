@@ -51,10 +51,14 @@ public class RobotContainer {
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
     private double leftY()  { return driverController.getRawAxis(1); } // LS Y
     private double rightX() { return driverController.getRawAxis(5); } // RS X
-    //private double rightY() { return driverController.getRawAxis(6); } // RS Y
+    private double rightY() { return driverController.getRawAxis(6); } // RS Y
+    // Need to have this be the joystick button
+    private double speedMult() { return driverController.getRawButton(5) ? 0.5 : 1.0; }
 
-    final int SPEAKER_TAG = 7;      // change to your tag
-    final double RANGE_M = 2.0;     // stop at 2 meters
+    // Vision stuff and things 🐼
+    final int HUB_TAG = 7;
+    // stop at 2 meters
+    final double RANGE_M = 2.0;
 
 
     private final SwerveRequest.RobotCentric robotDrive = new SwerveRequest.RobotCentric()
@@ -69,21 +73,20 @@ public class RobotContainer {
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
+        // speedMult should make a half speed 🐼
         drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
-                drive.withVelocityX(-leftY() * MaxSpeed) // Drive forward with negative Y (forward)
-                    .withVelocityY(-leftX() * MaxSpeed) // Drive left with negative X (left)
-                    .withRotationalRate(-rightX() * MaxAngularRate) // Drive counterclockwise with negative X (left)
+                drive.withVelocityX(-leftY() * MaxSpeed * speedMult()) // Drive forward with negative Y (forward)
+                    .withVelocityY(-leftX() * MaxSpeed * speedMult()) // Drive left with negative X (left)
+                    .withRotationalRate(-rightY() * MaxAngularRate * speedMult()) // Drive counterclockwise with negative X (left)
             )
         );
-        //need to make sure these are right
         JoystickButton squareButton = new JoystickButton(driverController, 1);
         JoystickButton xButton = new JoystickButton(driverController, 2);
         JoystickButton oButton = new JoystickButton(driverController, 3);
         JoystickButton triangleButton = new JoystickButton(driverController, 4);
 
-        //Need to find the # for this one
         JoystickButton leftBumper = new JoystickButton(driverController, 5);
         JoystickButton rightBumper = new JoystickButton(driverController, 6);
         JoystickButton leftTrigger = new JoystickButton(driverController, 7);
@@ -91,7 +94,9 @@ public class RobotContainer {
 
         JoystickButton shareButton = new JoystickButton(driverController, 9);
         JoystickButton optionsButton = new JoystickButton(driverController, 10);
-
+        // Need to add both the joystick push down buttons
+        //JoystickButton leftJoystickDown = new JoystickButton(driverController, null);
+        //JoystickButton rightJoystickDown = new JoystickButton(driverController, null);
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
@@ -119,19 +124,23 @@ public class RobotContainer {
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
-        oButton.whileTrue(
+        // Old vision test 🐼
+        /*oButton.whileTrue(
             new DriveIntoRange(
                 drivetrain, 
                 vision, 
                 robotDrive, 
                 () -> idle, 
-                SPEAKER_TAG,
+                HUB_TAG,
                 RANGE_M, 
                 MaxSpeed, 
                 MaxAngularRate)
         );
+        */
 
-        xButton.whileTrue(IntakeCommands.downThenRoller(intake, -6.0, 8.0));
+        xButton.whileTrue(IntakeCommands.runRollerWhileHeld(intake, -6.0));
+
+        squareButton.whileTrue(IntakeCommands.runRollerWhileHeld(intake, 6.0));
 
         rightTrigger.whileTrue(shooter.shootWhenReady(6000, 0.6));
 

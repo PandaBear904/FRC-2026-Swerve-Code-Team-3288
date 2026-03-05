@@ -37,7 +37,7 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
     public ShooterSubsystemCTRE(){
         shooterLeader = new TalonFX(shooterLeaderID, "rio");
         shooterFollower = new TalonFX(shooterFollowerID, "rio");
-        kicker  = new SparkFlex(kickerID, MotorType.kBrushless);
+        kicker = new SparkFlex(kickerID, MotorType.kBrushless);
 
         TalonFXConfiguration cfg = new TalonFXConfiguration();
 
