@@ -13,19 +13,20 @@ import com.revrobotics.spark.config.SparkMaxConfig;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 
 import edu.wpi.first.wpilibj.DigitalInput;
+import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 public class IntakeSubsystem extends SubsystemBase {
     private final SparkMax intakeMove;
     private final SparkMax intakeOn;
-    //private final DigitalInput intakeLimitDown;
-    //private final DigitalInput intakeLimitUp;
+    private final DigitalInput intakeLimitDown;
+    private final DigitalInput intakeLimitUp;
 
     public IntakeSubsystem(){
         intakeMove = new SparkMax(intakeMoveID, MotorType.kBrushless);
         intakeOn = new SparkMax(intakeOnID, MotorType.kBrushless);
-        //intakeLimitDown = new DigitalInput(limitSwitchDown);
-        //intakeLimitUp = new DigitalInput(limitSwitchUp);
+        intakeLimitDown = new DigitalInput(limitSwitchDown);
+        intakeLimitUp = new DigitalInput(limitSwitchUp);
 
         SparkMaxConfig intakeMoveConfig = new SparkMaxConfig();
         intakeMoveConfig.smartCurrentLimit(40);
@@ -41,15 +42,21 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeOn.configure(intakeOnConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
+    @Override
+    public void periodic(){
+        SmartDashboard.putBoolean("Limit Down", isDownLimitPressed());
+        SmartDashboard.putBoolean("Limit Up", isUpLimitPressed());
+    }
+
     // true when the DOWN limit switch is physically pressed
-    /*public boolean isDownLimitPressed() {
-        return !intakeLimitDown.get();
+    public boolean isDownLimitPressed() {
+        return intakeLimitDown.get();
     }
 
     // true when the UP limit switch is physically pressed
     public boolean isUpLimitPressed() {
-        return !intakeLimitUp.get(); 
-    }*/
+        return intakeLimitUp.get(); 
+    }
 
     public void runIntakeMove(double volts){
         intakeMove.setVoltage(volts);

@@ -3,10 +3,10 @@ package frc.robot.commands;
 import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import frc.robot.subsystems.IntakeSubsystem;
-// Only have the roller logic becuase passive intake yippee 🐼
+// Intake logic should work 🐼
 
 public class IntakeCommands {
-  /** Moves intake DOWN until the down limit switch is pressed. 
+
   public static Command moveDownUntilLimit(IntakeSubsystem intake, double downVolts) {
     return Commands.run(
             () -> {
@@ -21,9 +21,9 @@ public class IntakeCommands {
         .until(intake::isDownLimitPressed)
         .finallyDo(interrupted -> intake.stopMove());
   }
-  */
+  
 
-  /** Moves intake UP until the up limit switch is pressed. 
+
   public static Command moveUpUntilLimit(IntakeSubsystem intake, double upVolts) {
     return Commands.run(
             () -> {
@@ -38,9 +38,7 @@ public class IntakeCommands {
         .until(intake::isUpLimitPressed)
         .finallyDo(interrupted -> intake.stopMove());
   } 
-  */
 
-  /** Runs the roller intake motor while the command is scheduled. */
   public static Command runRollerWhileHeld(IntakeSubsystem intake, double rollerVolts) {
     return Commands.startEnd(
         () -> intake.runIntakeOn(rollerVolts),
@@ -49,10 +47,10 @@ public class IntakeCommands {
     );
   }
 
-  /*
+  
   public static Command downThenRoller(IntakeSubsystem intake, double downVolts, double rollerVolts) {
     return moveDownUntilLimit(intake, downVolts)
         .andThen(runRollerWhileHeld(intake, rollerVolts));
   }
-  */
+  
 }

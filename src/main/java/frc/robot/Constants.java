@@ -18,7 +18,7 @@ public final class Constants {
     public static final int shooterLeaderID = 14;
     public static final int shooterFollowerID = 15;
     public static final int kickerID = 16;
-    public static final double shooterTargetRPM = 4000.0;
+    public static final double shooterTargetRPM = 5000.0;
     public static final double shooterRPMTolerance = 200;
   }
 
