@@ -30,13 +30,14 @@ public class AgitatorSubsystem extends SubsystemBase{
         SparkFlexConfig agitatorLConfig = new SparkFlexConfig();
         agitatorLConfig.idleMode(IdleMode.kCoast);
         agitatorLConfig.smartCurrentLimit(40);
-        agitatorLConfig.inverted(false);
+        agitatorLConfig.inverted(true);
         agitatorLConfig.openLoopRampRate(0.12); // Ramp Rate
 
         SparkFlexConfig agitatorRConfig = new SparkFlexConfig();
-        agitatorRConfig.apply(agitatorLConfig);
-        // agitatorRConfig.inverted(false);
-        agitatorRConfig.follow(agitatorLeft);
+        agitatorRConfig.idleMode(IdleMode.kCoast);
+        agitatorRConfig.smartCurrentLimit(40);
+        agitatorRConfig.inverted(false);
+        agitatorRConfig.openLoopRampRate(0.12);
 
         agitatorLeft.configure(agitatorLConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         agitatorRight.configure(agitatorRConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
@@ -54,10 +55,12 @@ public class AgitatorSubsystem extends SubsystemBase{
 
     public void setVoltage(double voltage){
         agitatorLeft.setVoltage(voltage);
+        agitatorRight.setVoltage(voltage);
     }
 
     public void stopAgitator(){
         agitatorLeft.set(0);
+        agitatorRight.set(0);
     }
     
 }

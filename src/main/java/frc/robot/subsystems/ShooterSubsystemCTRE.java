@@ -1,10 +1,7 @@
 package frc.robot.subsystems;
 
-import static frc.robot.Constants.ShooterConstants.kickerID;
-import static frc.robot.Constants.ShooterConstants.shooterFollowerID;
-import static frc.robot.Constants.ShooterConstants.shooterLeaderID;
-import static frc.robot.Constants.ShooterConstants.shooterRPMTolerance;
-import static frc.robot.Constants.ShooterConstants.shooterTargetRPM;
+import static frc.robot.Constants.ShooterConstants.*;
+import static frc.robot.Constants.ControlConstants.*;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;

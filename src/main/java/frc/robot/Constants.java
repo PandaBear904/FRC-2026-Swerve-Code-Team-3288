@@ -11,15 +11,14 @@ public final class Constants {
     //Can change on the Driver Station
     public static final int driverPort = 0; 
     public static final int operatorPort = 1;
-  }
+ }
 
   public static class ShooterConstants {
     //Motor CAN ID
     public static final int shooterLeaderID = 14;
     public static final int shooterFollowerID = 15;
     public static final int kickerID = 16;
-    public static final double shooterTargetRPM = 5000.0;
-    public static final double shooterRPMTolerance = 200;
+
   }
 
   public static class AgitatorConstants {
@@ -44,6 +43,18 @@ public final class Constants {
     public static final int intakeOnID = 20;
     public static final int limitSwitchDown = 0;
     public static final int limitSwitchUp = 1;
-  }
+ }
+
+ public static class ControlConstants {
+    public static final double shooterTargetRPM = 3400.0;
+    public static final double shooterRPMTolerance = 200;
+    public static final double kickerPower = 0.6;
+    public static final double agitatorPower = 6.0;
+    public static final double reverseShooterPower = -3000;
+
+    public static final double intakeUpPower = -6.0;
+    public static final double intakeDownPower = 6.0;
+    public static final double rollerPower = -6.0;
+ }
 
 }

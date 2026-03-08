@@ -19,6 +19,8 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
+import edu.wpi.first.wpilibj.DriverStation;
+
 import frc.robot.commands.Agitator;
 import frc.robot.commands.DriveIntoRange;
 import frc.robot.commands.IntakeCommands;
@@ -31,7 +33,7 @@ import frc.robot.subsystems.ShooterSubsystemCTRE;
 import frc.robot.subsystems.VisionSubsytem;
 
 import static frc.robot.Constants.OperatorConstants.*;
-import static frc.robot.Constants.ShooterConstants.shooterTargetRPM;
+import static frc.robot.Constants.ControlConstants.*;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -52,7 +54,7 @@ public class RobotContainer {
     private SendableChooser<Command> autoChooser = new SendableChooser<>();
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-    public final VisionSubsytem vision = new VisionSubsytem();
+    //public final VisionSubsytem vision = new VisionSubsytem();
     public final ShooterSubsystemCTRE shooter = new ShooterSubsystemCTRE();
     public final IntakeSubsystem intake = new IntakeSubsystem();
     public final AgitatorSubsystem agitator = new AgitatorSubsystem();
@@ -62,7 +64,7 @@ public class RobotContainer {
     private double rightX() { return driverController.getRawAxis(5); } // RS X
     private double rightY() { return driverController.getRawAxis(2); } // RS Y
     // Need to have this be the joystick button
-    private double speedMult() { return driverController.getRawButton(11) ? 0.5 : 1.0; }
+    private double speedMult() { return driverController.getRawButton(11) ? 0.25 : 0.75; }
 
     // Vision stuff and things 🐼
     final int HUB_TAG = 7;
@@ -83,14 +85,33 @@ public class RobotContainer {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
         // speedMult should make a half speed 🐼
+
         drivetrain.setDefaultCommand(
+            drivetrain.applyRequest(()-> {
+                double x = -leftY();
+                double y = -leftX();
+                double rot = -rightY();
+
+                var alliance = DriverStation.getAlliance();
+                    if(alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red){
+                        x *= -1.0;
+                        y *= 1.0;
+                    }
+
+                    return drive.withVelocityX(x * MaxSpeed * speedMult())
+                                .withVelocityY(y * MaxSpeed * speedMult())
+                                .withRotationalRate(rot * MaxAngularRate * speedMult());
+            })
+        );
+
+        /* drivetrain.setDefaultCommand(
             // Drivetrain will execute this command periodically
             drivetrain.applyRequest(() ->
                 drive.withVelocityX(-leftY() * MaxSpeed * speedMult()) // Drive forward with negative Y (forward)
                     .withVelocityY(-leftX() * MaxSpeed * speedMult()) // Drive left with negative X (left)
                     .withRotationalRate(-rightY() * MaxAngularRate * speedMult()) // Drive counterclockwise with negative X (left)
             )
-        );
+        );*/
 
         // Below are the driver controller buttons
         JoystickButton squareButtonDriver = new JoystickButton(driverController, 1);
@@ -151,19 +172,17 @@ public class RobotContainer {
         drivetrain.registerTelemetry(logger::telemeterize);
 
         //Intake up
-        rightBumperDriver.whileTrue(IntakeCommands.moveUpUntilLimit(intake, -6.0));
+        rightBumperDriver.whileTrue(IntakeCommands.moveUpUntilLimit(intake, intakeUpPower));
         //Intake down
-        rightTriggerDriver.whileTrue(IntakeCommands.downThenRoller(intake, 6.0, -6.0));
+        rightTriggerDriver.whileTrue(IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower));
+        triangleButtonDriver.whileTrue(IntakeCommands.runRollerWhileHeld(intake, rollerPower));
 
-        triangleButtonDriver.whileTrue(IntakeCommands.runRollerWhileHeld(intake, -6.0));
+        rightTriggerOperator.whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
+        rightBumperOperator.whileTrue(new Agitator(agitator, -agitatorPower));
+        leftBumperOperator.whileTrue(new Agitator(agitator, agitatorPower));
+        leftTriggerOperator.whileTrue(shooter.shootWhenReady(reverseShooterPower, (-kickerPower + 0.3)));
 
-        rightTriggerOperator.whileTrue(shooter.shootWhenReady(shooterTargetRPM, 0.6));
-
-        rightBumperOperator.whileTrue(new Agitator(agitator, 6.0));
-
-        leftBumperOperator.whileTrue(new Agitator(agitator, -6.0));
-
-        leftTriggerOperator.whileTrue(shooter.shootWhenReady(-3000, -0.3));
+        triangleButtonOperator.whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
 
 
     }
