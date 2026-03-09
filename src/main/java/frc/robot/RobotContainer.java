@@ -21,16 +21,16 @@ import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj.DriverStation;
 
-import frc.robot.commands.Agitator;
-import frc.robot.commands.DriveIntoRange;
-import frc.robot.commands.IntakeCommands;
+//import frc.robot.commands.Agitator;
+//import frc.robot.commands.DriveIntoRange;
+//import frc.robot.commands.IntakeCommands;
 import frc.robot.commands.testAuto;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AgitatorSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
-import frc.robot.subsystems.IntakeSubsystem;
+//import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystemCTRE;
-import frc.robot.subsystems.VisionSubsytem;
+//import frc.robot.subsystems.VisionSubsytem;
 
 import static frc.robot.Constants.OperatorConstants.*;
 import static frc.robot.Constants.ControlConstants.*;
@@ -56,7 +56,7 @@ public class RobotContainer {
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
     //public final VisionSubsytem vision = new VisionSubsytem();
     public final ShooterSubsystemCTRE shooter = new ShooterSubsystemCTRE();
-    public final IntakeSubsystem intake = new IntakeSubsystem();
+    //public final IntakeSubsystem intake = new IntakeSubsystem();
     public final AgitatorSubsystem agitator = new AgitatorSubsystem();
 
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
@@ -88,13 +88,17 @@ public class RobotContainer {
 
         drivetrain.setDefaultCommand(
             drivetrain.applyRequest(()-> {
-                double x = -leftY();
-                double y = -leftX();
-                double rot = -rightY();
+
+                double x = leftY();
+                double y = leftX();
+                double rot = rightY();
 
                 var alliance = DriverStation.getAlliance();
                     if(alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red){
-                        x *= -1.0;
+                        x *= 1.0;
+                        y *= 1.0;
+                    } else {
+                        x *= 1.0;
                         y *= 1.0;
                     }
 
@@ -167,43 +171,43 @@ public class RobotContainer {
         */
 
         // Reset the field-centric heading on left bumper press.
-        leftBumperDriver.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
+        // leftBumperDriver.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
 
         drivetrain.registerTelemetry(logger::telemeterize);
 
         //Intake up
-        rightBumperDriver.whileTrue(IntakeCommands.moveUpUntilLimit(intake, intakeUpPower));
+        //rightBumperDriver.whileTrue(IntakeCommands.moveUpUntilLimit(intake, intakeUpPower));
         //Intake down
-        rightTriggerDriver.whileTrue(IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower));
-        triangleButtonDriver.whileTrue(IntakeCommands.runRollerWhileHeld(intake, rollerPower));
-
+        //rightTriggerDriver.whileTrue(IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower));
+        //triangleButtonDriver.whileTrue(IntakeCommands.runRollerWhileHeld(intake, rollerPower));
+        /*
         rightTriggerOperator.whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
         rightBumperOperator.whileTrue(new Agitator(agitator, -agitatorPower));
         leftBumperOperator.whileTrue(new Agitator(agitator, agitatorPower));
         leftTriggerOperator.whileTrue(shooter.shootWhenReady(reverseShooterPower, (-kickerPower + 0.3)));
 
         triangleButtonOperator.whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
+         */
 
 
     }
 
     private void configureAuto(){
-        autoChooser.setDefaultOption("Do Nothing", null);
-        autoChooser.addOption("Test Auto", new testAuto(shooter, agitator));
-        autoChooser.addOption("Move Auto (don't work 🐼)", null);
+        autoChooser.addOption("Do Nothing", null);
+        //autoChooser.addOption("Test Auto", new testAuto(shooter, agitator));
+        //autoChooser.addOption("Move Auto (don't work 🐼)", null);
+        autoChooser.setDefaultOption("Pre load)", PreLoad());
 
         SmartDashboard.putData("Auto Chooser", autoChooser);
     }
 
-    public Command getAutonomousCommand() {
-        return autoChooser.getSelected();
-        //Ned to move this to the commands folder 🐼
+    public Command PreLoad(){
         // Simple drive forward auton
-       /* final var idle = new SwerveRequest.Idle();
+        //final var idle = new SwerveRequest.Idle();
         return Commands.sequence(
             // Reset our field centric heading to match the robot
             // facing away from our alliance station wall (0 deg).
-            drivetrain.runOnce(() -> drivetrain.seedFieldCentric(Rotation2d.kZero)),
+            // drivetrain.runOnce(() -> drivetrain.seedFieldCentric(Rotation2d.kZero)),
             // Then slowly drive forward (away from us) for 5 seconds.
             drivetrain.applyRequest(() ->
                 drive.withVelocityX(0.5)
@@ -212,7 +216,27 @@ public class RobotContainer {
             )
             .withTimeout(2.5),
             // Finally idle for the rest of auton
-            drivetrain.applyRequest(() -> idle)
-        );*/
+            drivetrain.applyRequest(() ->
+                drive.withVelocityX(0)
+                    .withVelocityY(0)
+                    .withRotationalRate(0)
+            ).withTimeout(1),
+            Commands.waitSeconds(1),
+            Commands.runOnce(() -> shooter.setRPM(shooterTargetRPM)),
+                // Wait until the shooter is at 4000 RPM
+                Commands.waitUntil(() -> shooter.shooterAtRPM(shooterRPMTolerance)),
+                //This might work??
+                Commands.run(() -> shooter.kick(kickerPower))
+                   .alongWith(Commands.run(() -> agitator.setVoltage(-agitatorPower), agitator)).withTimeout(4.0),
+                // Turn on the agitator on
+                // Stop everything
+                Commands.runOnce(agitator::stopAgitator, agitator),
+                Commands.runOnce(shooter::stopShooter, shooter),
+                Commands.runOnce(shooter::stopKicker, shooter)
+        );
+    }
+
+    public Command getAutonomousCommand() {
+        return autoChooser.getSelected();
     }
 }
