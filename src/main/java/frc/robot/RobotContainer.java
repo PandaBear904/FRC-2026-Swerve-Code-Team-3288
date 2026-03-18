@@ -9,6 +9,7 @@ import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
+import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
@@ -17,16 +18,14 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj.DriverStation;
 import frc.robot.commands.Agitator;
 import frc.robot.commands.IntakeCommands;
-//import frc.robot.commands.Agitator;
-//import frc.robot.commands.DriveIntoRange;
-//import frc.robot.commands.IntakeCommands;
-import frc.robot.commands.testAuto;
+// import frc.robot.commands.Agitator;
+// import frc.robot.commands.DriveIntoRange;
+// import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AgitatorSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
@@ -79,17 +78,17 @@ public class RobotContainer {
 
 
     public RobotContainer() {
-        // Set up commands for Auto
-        NamedCommands.registerCommand("Intake", IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower));
-        NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorPower));
-        NamedCommands.registerCommand("Shoot", new shooter.shootWhenReady(shooterTargetRPM, kickerPower));
+        // // Set up commands for Auto
+        // NamedCommands.registerCommand("Intake", IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower));
+        // NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorPower));
+        // NamedCommands.registerCommand("Shoot", shooter.shootWhenReady(shooterTargetRPM, kickerPower));
 
-
-
+        //Set up AutoBuilder
+        autoChooser = AutoBuilder.buildAutoChooser();
+        SmartDashboard.putData("Auto Chosser", autoChooser);
 
 
         configureBindings();
-        configureAuto();
     }
 
     private void configureBindings() {
@@ -129,33 +128,33 @@ public class RobotContainer {
         );*/
 
         // Below are the driver controller buttons
-        JoystickButton squareButtonDriver = new JoystickButton(driverController, 1);
-        JoystickButton xButtonDriver = new JoystickButton(driverController, 2);
-        JoystickButton oButtonDriver = new JoystickButton(driverController, 3);
-        JoystickButton triangleButtonDriver = new JoystickButton(driverController, 4);
-        JoystickButton leftBumperDriver = new JoystickButton(driverController, 5);
-        JoystickButton rightBumperDriver = new JoystickButton(driverController, 6);
+        // JoystickButton squareButtonDriver = new JoystickButton(driverController, 1);
+        // JoystickButton xButtonDriver = new JoystickButton(driverController, 2);
+        // JoystickButton oButtonDriver = new JoystickButton(driverController, 3);
+        // JoystickButton triangleButtonDriver = new JoystickButton(driverController, 4);
+        // JoystickButton leftBumperDriver = new JoystickButton(driverController, 5);
+        // JoystickButton rightBumperDriver = new JoystickButton(driverController, 6);
         JoystickButton leftTriggerDriver = new JoystickButton(driverController, 7);
-        JoystickButton rightTriggerDriver = new JoystickButton(driverController, 8);
-        JoystickButton shareButtonDriver = new JoystickButton(driverController, 9);
+        // JoystickButton rightTriggerDriver = new JoystickButton(driverController, 8);
+        // JoystickButton shareButtonDriver = new JoystickButton(driverController, 9);
         JoystickButton optionsButtonDriver = new JoystickButton(driverController, 10);
         // leftJoystickDownDriver is used for half speed.
-        JoystickButton leftJoystickDownDriver = new JoystickButton(driverController, 11);
-        JoystickButton rightJoystickDownDriver = new JoystickButton(driverController, 12);
+        // JoystickButton leftJoystickDownDriver = new JoystickButton(driverController, 11);
+        // JoystickButton rightJoystickDownDriver = new JoystickButton(driverController, 12);
 
         // Below are the operator controller buttons
-        JoystickButton squareButtonOperator = new JoystickButton(operatorController, 1);
-        JoystickButton xButtonOperator = new JoystickButton(operatorController, 2);
-        JoystickButton oButtonOperator = new JoystickButton(operatorController, 3);
-        JoystickButton triangleButtonOperator = new JoystickButton(operatorController, 4);
-        JoystickButton leftBumperOperator = new JoystickButton(operatorController, 5);
-        JoystickButton rightBumperOperator = new JoystickButton(operatorController, 6);
-        JoystickButton leftTriggerOperator = new JoystickButton(operatorController, 7);
-        JoystickButton rightTriggerOperator = new JoystickButton(operatorController, 8);
-        JoystickButton shareButtonOperator = new JoystickButton(operatorController, 9);
-        JoystickButton optionsButtonOperator = new JoystickButton(operatorController, 10);
-        JoystickButton leftJoystickDownOperator = new JoystickButton(operatorController, 11);
-        JoystickButton rightJoystickDownOperator = new JoystickButton(operatorController, 12);
+        // JoystickButton squareButtonOperator = new JoystickButton(operatorController, 1);
+        // JoystickButton xButtonOperator = new JoystickButton(operatorController, 2);
+        // JoystickButton oButtonOperator = new JoystickButton(operatorController, 3);
+        // JoystickButton triangleButtonOperator = new JoystickButton(operatorController, 4);
+        // JoystickButton leftBumperOperator = new JoystickButton(operatorController, 5);
+        // JoystickButton rightBumperOperator = new JoystickButton(operatorController, 6);
+        // JoystickButton leftTriggerOperator = new JoystickButton(operatorController, 7);
+        // JoystickButton rightTriggerOperator = new JoystickButton(operatorController, 8);
+        // JoystickButton shareButtonOperator = new JoystickButton(operatorController, 9);
+        // JoystickButton optionsButtonOperator = new JoystickButton(operatorController, 10);
+        // JoystickButton leftJoystickDownOperator = new JoystickButton(operatorController, 11);
+        // JoystickButton rightJoystickDownOperator = new JoystickButton(operatorController, 12);
 
 
 
@@ -172,14 +171,6 @@ public class RobotContainer {
             point.withModuleDirection(new Rotation2d(-leftY(), -leftX()))
         ));
 
-        // Run SysId routines when holding back/start and X/Y.
-        // Note that each routine should be run exactly once in a single log.
-        /*
-        driverController.back().and(driverController.y()).whileTrue(drivetrain.sysIdDynamic(Direction.kForward));
-        driverController.back().and(driverController.x()).whileTrue(drivetrain.sysIdDynamic(Direction.kReverse));
-        driverController.start().and(driverController.y()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kForward));
-        driverController.start().and(driverController.x()).whileTrue(drivetrain.sysIdQuasistatic(Direction.kReverse));
-        */
 
         // Reset the field-centric heading on left bumper press.
         // leftBumperDriver.onTrue(drivetrain.runOnce(drivetrain::seedFieldCentric));
@@ -201,15 +192,6 @@ public class RobotContainer {
          */
 
 
-    }
-
-    private void configureAuto(){
-        autoChooser.addOption("Do Nothing", null);
-        //autoChooser.addOption("Test Auto", new testAuto(shooter, agitator));
-        //autoChooser.addOption("Move Auto (don't work 🐼)", null);
-        //autoChooser.setDefaultOption("Pre load)", PreLoad());
-
-        SmartDashboard.putData("Auto Chooser", autoChooser);
     }
 
     // public Command PreLoad(){
