@@ -11,6 +11,10 @@ import static edu.wpi.first.units.Units.RotationsPerSecond;
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.pathplanner.lib.auto.AutoBuilder;
 import com.pathplanner.lib.auto.NamedCommands;
+import com.pathplanner.lib.config.PIDConstants;
+import com.pathplanner.lib.config.RobotConfig;
+import com.pathplanner.lib.controllers.PPHolonomicDriveController;
+import com.pathplanner.lib.path.PathConstraints;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 import edu.wpi.first.math.geometry.Rotation2d;
@@ -21,8 +25,9 @@ import edu.wpi.first.wpilibj2.command.Command;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj.DriverStation;
+import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.commands.Agitator;
-import frc.robot.commands.IntakeCommands;
+//import frc.robot.commands.IntakeCommands;
 // import frc.robot.commands.Agitator;
 // import frc.robot.commands.DriveIntoRange;
 // import frc.robot.commands.IntakeCommands;
@@ -67,10 +72,12 @@ public class RobotContainer {
     // Need to have this be the joystick button
     private double speedMult() { return driverController.getRawButton(11) ? 0.25 : 0.75; }
 
-    // Vision stuff and things 🐼
+    // Vision stuff and things 
     final int HUB_TAG = 7;
     // stop at 2 meters
     final double RANGE_M = 2.0;
+
+    private final SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
 
     private final SwerveRequest.RobotCentric robotDrive = new SwerveRequest.RobotCentric()
         .withDeadband(0.05)
@@ -78,23 +85,54 @@ public class RobotContainer {
 
 
     public RobotContainer() {
-        // // Set up commands for Auto
-        // NamedCommands.registerCommand("Intake", IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower));
-        // NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorPower));
-        // NamedCommands.registerCommand("Shoot", shooter.shootWhenReady(shooterTargetRPM, kickerPower));
+        registerNamedCommands();
+        configureAutoBuilder();
 
-        //Set up AutoBuilder
+        // Set up AutoBuilder
         autoChooser = AutoBuilder.buildAutoChooser();
         SmartDashboard.putData("Auto Chosser", autoChooser);
-
-
         configureBindings();
+    }
+
+    public void registerNamedCommands(){
+        // Set up commands for Auto
+        // NamedCommands.registerCommand("Intake", IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower));
+        NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorPower));
+        NamedCommands.registerCommand("Shoot", shooter.shootWhenReady(shooterTargetRPM, kickerPower));
+
+    }
+
+     private void configureAutoBuilder(){
+        try{
+            RobotConfig config = RobotConfig.fromGUISettings();
+
+            AutoBuilder.configure(
+                () -> drivetrain.getState().Pose,
+                drivetrain::resetPose,
+                () -> drivetrain.getState().Speeds, 
+                (speeds, feedforwards) -> drivetrain.setControl(
+                    m_pathApplyRobotSpeeds
+                        .withSpeeds(speeds)
+                        .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
+                        .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
+                ), 
+                new PPHolonomicDriveController(
+                    new PIDConstants(3.0, 0.0, 0.0), 
+                    new PIDConstants(2.5, 0.2, 0.15)
+                ), 
+                config, 
+                () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, 
+                drivetrain
+            );
+        } catch (Exception e) {
+            DriverStation.reportError("Failed to load PathPlanner config: " + e.getMessage(), e.getStackTrace());
+        }
     }
 
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
-        // speedMult should make a half speed 🐼
+        // speedMult should make a half speed 
 
         drivetrain.setDefaultCommand(
             drivetrain.applyRequest(()-> {
@@ -146,11 +184,11 @@ public class RobotContainer {
         // JoystickButton squareButtonOperator = new JoystickButton(operatorController, 1);
         // JoystickButton xButtonOperator = new JoystickButton(operatorController, 2);
         // JoystickButton oButtonOperator = new JoystickButton(operatorController, 3);
-        // JoystickButton triangleButtonOperator = new JoystickButton(operatorController, 4);
-        // JoystickButton leftBumperOperator = new JoystickButton(operatorController, 5);
-        // JoystickButton rightBumperOperator = new JoystickButton(operatorController, 6);
-        // JoystickButton leftTriggerOperator = new JoystickButton(operatorController, 7);
-        // JoystickButton rightTriggerOperator = new JoystickButton(operatorController, 8);
+        JoystickButton triangleButtonOperator = new JoystickButton(operatorController, 4);
+        JoystickButton leftBumperOperator = new JoystickButton(operatorController, 5);
+        JoystickButton rightBumperOperator = new JoystickButton(operatorController, 6);
+        JoystickButton leftTriggerOperator = new JoystickButton(operatorController, 7);
+        JoystickButton rightTriggerOperator = new JoystickButton(operatorController, 8);
         // JoystickButton shareButtonOperator = new JoystickButton(operatorController, 9);
         // JoystickButton optionsButtonOperator = new JoystickButton(operatorController, 10);
         // JoystickButton leftJoystickDownOperator = new JoystickButton(operatorController, 11);
@@ -182,52 +220,17 @@ public class RobotContainer {
         //Intake down
         //rightTriggerDriver.whileTrue(IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower));
         //triangleButtonDriver.whileTrue(IntakeCommands.runRollerWhileHeld(intake, rollerPower));
-        /*
+        
         rightTriggerOperator.whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
         rightBumperOperator.whileTrue(new Agitator(agitator, -agitatorPower));
         leftBumperOperator.whileTrue(new Agitator(agitator, agitatorPower));
         leftTriggerOperator.whileTrue(shooter.shootWhenReady(reverseShooterPower, (-kickerPower + 0.3)));
 
         triangleButtonOperator.whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
-         */
+         
 
 
     }
-
-    // public Command PreLoad(){
-    //     // Simple drive forward auton
-    //     //final var idle = new SwerveRequest.Idle();
-    //     return Commands.sequence(
-    //         // Reset our field centric heading to match the robot
-    //         // facing away from our alliance station wall (0 deg).
-    //         // drivetrain.runOnce(() -> drivetrain.seedFieldCentric(Rotation2d.kZero)),
-    //         // Then slowly drive forward (away from us) for 5 seconds.
-    //         drivetrain.applyRequest(() ->
-    //             drive.withVelocityX(0.5)
-    //                 .withVelocityY(0)
-    //                 .withRotationalRate(0)
-    //         )
-    //         .withTimeout(2.5),
-    //         // Finally idle for the rest of auton
-    //         drivetrain.applyRequest(() ->
-    //             drive.withVelocityX(0)
-    //                 .withVelocityY(0)
-    //                 .withRotationalRate(0)
-    //         ).withTimeout(1),
-    //         Commands.waitSeconds(1),
-    //         Commands.runOnce(() -> shooter.setRPM(shooterTargetRPM)),
-    //             // Wait until the shooter is at 4000 RPM
-    //             Commands.waitUntil(() -> shooter.shooterAtRPM(shooterRPMTolerance)),
-    //             //This might work??
-    //             Commands.run(() -> shooter.kick(kickerPower))
-    //                .alongWith(Commands.run(() -> agitator.setVoltage(-agitatorPower), agitator)).withTimeout(4.0),
-    //             // Turn on the agitator on
-    //             // Stop everything
-    //             Commands.runOnce(agitator::stopAgitator, agitator),
-    //             Commands.runOnce(shooter::stopShooter, shooter),
-    //             Commands.runOnce(shooter::stopKicker, shooter)
-    //     );
-    // }
 
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();

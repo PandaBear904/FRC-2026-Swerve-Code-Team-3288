@@ -54,7 +54,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
     private final SwerveRequest.SysIdSwerveSteerGains m_steerCharacterization = new SwerveRequest.SysIdSwerveSteerGains();
     private final SwerveRequest.SysIdSwerveRotation m_rotationCharacterization = new SwerveRequest.SysIdSwerveRotation();
 
-    private final SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
 
     /* SysId routine for characterizing translation. This is used to find PID gains for the drive motors. */
     private final SysIdRoutine m_sysIdRoutineTranslation = new SysIdRoutine(
@@ -136,35 +135,9 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        configureAutoBuilder();
     }
 
-    private void configureAutoBuilder(){
-        try{
-            RobotConfig config = RobotConfig.fromGUISettings();
-
-            AutoBuilder.configure(
-                () -> getState().Pose,
-                this::resetPose,
-                () -> getState().Speeds, 
-                (speeds, feedforwards) -> setControl(
-                    m_pathApplyRobotSpeeds
-                        .withSpeeds(speeds)
-                        .withWheelForceFeedforwardsX(feedforwards.robotRelativeForcesXNewtons())
-                        .withWheelForceFeedforwardsY(feedforwards.robotRelativeForcesYNewtons())
-                ), 
-                new PPHolonomicDriveController(
-                    new PIDConstants(3.0, 0.0, 0.0), 
-                    new PIDConstants(2.5, 0.2, 0.15)
-                ), 
-                config, 
-                () -> DriverStation.getAlliance().orElse(Alliance.Blue) == Alliance.Red, 
-                this
-            );
-        } catch (Exception e) {
-            DriverStation.reportError("Failed to load PathPlanner config: " + e.getMessage(), e.getStackTrace());
-        }
-    }
+   
 
     /**
      * Constructs a CTRE SwerveDrivetrain using the specified constants.
@@ -188,7 +161,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
         if (Utils.isSimulation()) {
             startSimThread();
         }
-        configureAutoBuilder();
     }
 
     /**
@@ -222,7 +194,6 @@ public class CommandSwerveDrivetrain extends TunerSwerveDrivetrain implements Su
             startSimThread();
         }
 
-        configureAutoBuilder();
     }
 
     /**

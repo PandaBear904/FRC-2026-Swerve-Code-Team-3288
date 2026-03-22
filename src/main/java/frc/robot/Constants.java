@@ -46,7 +46,7 @@ public final class Constants {
  }
 
  public static class ControlConstants {
-    public static final double shooterTargetRPM = 4400.0;
+    public static final double shooterTargetRPM = 5400.0;
     public static final double shooterRPMTolerance = 200;
     public static final double kickerPower = 0.6;
     public static final double agitatorPower = 6.0;
