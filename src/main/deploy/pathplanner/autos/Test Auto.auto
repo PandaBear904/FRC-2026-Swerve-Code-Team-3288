@@ -9,6 +9,18 @@
           "data": {
             "pathName": "Test Path"
           }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Shoot"
+          }
+        },
+        {
+          "type": "named",
+          "data": {
+            "name": "Agitator"
+          }
         }
       ]
     }

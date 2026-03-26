@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 2.0394454382826472,
-        "y": 7.320644007155635
+        "x": 0.0,
+        "y": 0.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 2.0382565121289047,
-        "y": 6.910378583057352
+        "x": 0.25,
+        "y": 0.0
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 2.0394454382826472,
-        "y": 2.517924865831842
+        "x": 0.0,
+        "y": 0.0
       },
       "prevControl": {
-        "x": 2.046436668816121,
-        "y": 4.77654403849356
+        "x": -0.25,
+        "y": 3.061616997868383e-17
       },
       "nextControl": null,
       "isLocked": false,
@@ -34,8 +34,14 @@
   "eventMarkers": [
     {
       "name": "Shoot",
-      "waypointRelativePos": 0.7047619047619047,
-      "endWaypointRelativePos": null,
+      "waypointRelativePos": 0.1999999999999999,
+      "endWaypointRelativePos": 0.75,
+      "command": null
+    },
+    {
+      "name": "Agitator",
+      "waypointRelativePos": 0.20238095238095274,
+      "endWaypointRelativePos": 0.7476190476190475,
       "command": null
     }
   ],
@@ -48,7 +54,7 @@
     "unlimited": false
   },
   "goalEndState": {
-    "velocity": 0,
+    "velocity": 0.0,
     "rotation": 0.0
   },
   "reversed": false,
