@@ -45,7 +45,7 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
         cfg.CurrentLimits.SupplyCurrentLimitEnable = true;
         cfg.CurrentLimits.SupplyCurrentLimit = 40;
 
-        // Velocity Control gain (NEED TO CHANGE!!!!!!!!!!!!!)
+        // Velocity Control gains
         cfg.Slot0.kP = 0.12;
         cfg.Slot0.kI = 0.0;
         cfg.Slot0.kD = 0.0;

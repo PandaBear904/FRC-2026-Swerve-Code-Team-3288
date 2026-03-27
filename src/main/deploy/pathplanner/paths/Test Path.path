@@ -3,25 +3,25 @@
   "waypoints": [
     {
       "anchor": {
-        "x": 0.0,
-        "y": 0.0
+        "x": 1.0,
+        "y": 1.0
       },
       "prevControl": null,
       "nextControl": {
-        "x": 0.25,
-        "y": 0.0
+        "x": 1.5986801463961173,
+        "y": 0.9908049505129873
       },
       "isLocked": false,
       "linkedName": null
     },
     {
       "anchor": {
-        "x": 0.0,
-        "y": 0.0
+        "x": 3.0,
+        "y": 1.0
       },
       "prevControl": {
-        "x": -0.25,
-        "y": 3.061616997868383e-17
+        "x": 2.507515379149468,
+        "y": 0.9831197243283002
       },
       "nextControl": null,
       "isLocked": false,
@@ -34,14 +34,14 @@
   "eventMarkers": [
     {
       "name": "Shoot",
-      "waypointRelativePos": 0.1999999999999999,
-      "endWaypointRelativePos": 0.75,
+      "waypointRelativePos": 0.44285714285714234,
+      "endWaypointRelativePos": 1.0,
       "command": null
     },
     {
       "name": "Agitator",
-      "waypointRelativePos": 0.20238095238095274,
-      "endWaypointRelativePos": 0.7476190476190475,
+      "waypointRelativePos": 0.6809523809523796,
+      "endWaypointRelativePos": null,
       "command": null
     }
   ],

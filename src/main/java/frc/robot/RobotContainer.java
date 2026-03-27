@@ -27,16 +27,13 @@ import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import frc.robot.commands.Agitator;
-//import frc.robot.commands.IntakeCommands;
 // import frc.robot.commands.Agitator;
-// import frc.robot.commands.DriveIntoRange;
 // import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AgitatorSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystemCTRE;
-//import frc.robot.subsystems.VisionSubsytem;
 
 import static frc.robot.Constants.OperatorConstants.*;
 import static frc.robot.Constants.ControlConstants.*;
@@ -60,7 +57,6 @@ public class RobotContainer {
     private SendableChooser<Command> autoChooser = new SendableChooser<>();
 
     public final CommandSwerveDrivetrain drivetrain = TunerConstants.createDrivetrain();
-    //public final VisionSubsytem vision = new VisionSubsytem();
     public final ShooterSubsystemCTRE shooter = new ShooterSubsystemCTRE();
     public final IntakeSubsystem intake = new IntakeSubsystem();
     public final AgitatorSubsystem agitator = new AgitatorSubsystem();
@@ -72,16 +68,7 @@ public class RobotContainer {
     // Need to have this be the joystick button
     private double speedMult() { return driverController.getRawButton(11) ? 0.25 : 0.75; }
 
-    // Vision stuff and things 
-    final int HUB_TAG = 7;
-    // stop at 2 meters
-    final double RANGE_M = 2.0;
-
     private final SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
-
-    private final SwerveRequest.RobotCentric robotDrive = new SwerveRequest.RobotCentric()
-        .withDeadband(0.05)
-        .withRotationalDeadband(0.05);
 
 
     public RobotContainer() {
