@@ -8,6 +8,8 @@ import static frc.robot.Constants.IntakeConstats.limitSwitchUp;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
+import com.ctre.phoenix6.signals.InvertedValue;
+import com.ctre.phoenix6.signals.NeutralModeValue;
 import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
@@ -30,6 +32,7 @@ public class IntakeSubsystem extends SubsystemBase {
     public IntakeSubsystem(){
         intakeMove = new SparkMax(intakeMoveID, MotorType.kBrushless);
         intakeOn = new TalonFX(intakeOnID, "rio");
+        
         intakeLimitDown = new DigitalInput(limitSwitchDown);
         intakeLimitUp = new DigitalInput(limitSwitchUp);
 
@@ -40,10 +43,14 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeMove.configure(intakeMoveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         
         TalonFXConfiguration cfg = new TalonFXConfiguration();
+
         cfg.CurrentLimits.SupplyCurrentLimitEnable = true;
         cfg.CurrentLimits.SupplyCurrentLimit = 40;
 
-intakeOn.getConfigurator().apply(cfg);
+        cfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
+        cfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+        intakeOn.getConfigurator().apply(cfg);
     }
 
     @Override
