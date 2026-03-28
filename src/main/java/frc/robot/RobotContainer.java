@@ -7,8 +7,15 @@ package frc.robot;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static frc.robot.Constants.ControlConstants.*;
-import static frc.robot.Constants.OperatorConstants.*;
+import static frc.robot.Constants.ControlConstants.agitatorPower;
+import static frc.robot.Constants.ControlConstants.intakeDownPower;
+import static frc.robot.Constants.ControlConstants.intakeUpPower;
+import static frc.robot.Constants.ControlConstants.kickerPower;
+import static frc.robot.Constants.ControlConstants.reverseShooterPower;
+import static frc.robot.Constants.ControlConstants.rollerPower;
+import static frc.robot.Constants.ControlConstants.shooterTargetRPM;
+import static frc.robot.Constants.OperatorConstants.driverPort;
+import static frc.robot.Constants.OperatorConstants.operatorPort;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -72,15 +79,18 @@ public class RobotContainer {
         registerNamedCommands();
         configureAutoBuilder();
 
-        // Set up AutoBuilder
-        autoChooser = AutoBuilder.buildAutoChooser();
-        SmartDashboard.putData("Auto Chosser", autoChooser);
+        // Set up AutoChooser
+        autoChooser.setDefaultOption("Do Nothing", AutoBuilder.buildAuto("Do Nothing"));
+        autoChooser.setDefaultOption("Intake Test", AutoBuilder.buildAuto("Intake Only Auto"));        
+        autoChooser.setDefaultOption("Test Auto", AutoBuilder.buildAuto("Test Auto"));
+        SmartDashboard.putData("Auto Chooser", autoChooser);
         configureBindings();
     }
 
     public void registerNamedCommands(){
         // Set up commands for Auto
         NamedCommands.registerCommand("Intake", IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower));
+        NamedCommands.registerCommand("Rev Intake", IntakeCommands.moveUpUntilLimit(intake, intakeUpPower).withTimeout(1.5));
         NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorPower));
         NamedCommands.registerCommand("Shoot", shooter.shootWhenReady(shooterTargetRPM, kickerPower));
 
@@ -126,7 +136,7 @@ public class RobotContainer {
                 double rot = rightY();
 
                 var alliance = DriverStation.getAlliance();
-                    if(alliance.isPresent() && alliance.get() == DriverStation.Alliance.Red){
+                    if(alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue){
                         x *= -1.0;
                         y *= -1.0;
                     } else {
@@ -194,10 +204,10 @@ public class RobotContainer {
         //Just run the intake
         triangleButtonDriver.whileTrue(IntakeCommands.runRollerWhileHeld(intake, rollerPower));
         
-        rightTriggerOperator.whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
-        rightBumperOperator.whileTrue(new Agitator(agitator, -agitatorPower));
-        leftBumperOperator.whileTrue(new Agitator(agitator, agitatorPower));
-        leftTriggerOperator.whileTrue(shooter.shootWhenReady(reverseShooterPower, (-kickerPower + 0.3)));
+        leftTriggerOperator.whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
+        leftBumperOperator.whileTrue(new Agitator(agitator, -agitatorPower));
+        rightBumperOperator.whileTrue(new Agitator(agitator, agitatorPower));
+        rightTriggerOperator.whileTrue(shooter.shootWhenReady(reverseShooterPower, (-kickerPower + 0.3)));
 
         triangleButtonOperator.whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
     }

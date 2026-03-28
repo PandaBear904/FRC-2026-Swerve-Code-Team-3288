@@ -52,9 +52,9 @@ public final class Constants {
     public static final double agitatorPower = 6.0;
     public static final double reverseShooterPower = -3000;
 
-    public static final double intakeUpPower = -6.0;
-    public static final double intakeDownPower = 6.0;
-    public static final double rollerPower = -6.0;
+    public static final double intakeUpPower = 6.0;
+    public static final double intakeDownPower = -6.0;
+    public static final double rollerPower = 6.0;
  }
 
 }
