@@ -38,7 +38,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
         SparkMaxConfig intakeMoveConfig = new SparkMaxConfig();
         intakeMoveConfig.smartCurrentLimit(40);
-        intakeMoveConfig.idleMode(IdleMode.kCoast);
+        intakeMoveConfig.idleMode(IdleMode.kBrake);
         intakeMoveConfig.inverted(false);
         intakeMove.configure(intakeMoveConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
         

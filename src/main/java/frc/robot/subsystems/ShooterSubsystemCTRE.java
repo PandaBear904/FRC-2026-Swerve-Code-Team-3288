@@ -1,11 +1,15 @@
 package frc.robot.subsystems;
 
-import static frc.robot.Constants.ShooterConstants.*;
-import static frc.robot.Constants.ControlConstants.*;
+import static frc.robot.Constants.ControlConstants.shooterRPMTolerance;
+import static frc.robot.Constants.ControlConstants.shooterTargetRPM;
+import static frc.robot.Constants.ShooterConstants.kickerID;
+import static frc.robot.Constants.ShooterConstants.shooterFollowerID;
+import static frc.robot.Constants.ShooterConstants.shooterLeaderID;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
+import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
@@ -29,6 +33,7 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
     private final SparkFlex kicker;
 
     private final VelocityVoltage velocityReq = new VelocityVoltage(0);
+    private final VoltageOut voltageReq = new VoltageOut(0);
 
     
     public ShooterSubsystemCTRE(){
@@ -39,7 +44,7 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
         TalonFXConfiguration cfg = new TalonFXConfiguration();
 
         cfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        cfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+        cfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
 
         // Current limits
         cfg.CurrentLimits.SupplyCurrentLimitEnable = true;
@@ -79,6 +84,9 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
         double rps = rpm / 60.0;
         shooterLeader.setControl(velocityReq.withVelocity(rps));
     }
+    public void setVoltage(double volts){
+        shooterLeader.setControl(voltageReq.withOutput(volts));
+    }
 
     public double getShooterRPM() {
         return shooterLeader.getVelocity().getValueAsDouble() * 60.0;
@@ -98,6 +106,11 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
 
     public void stopKicker(){
         kicker.stopMotor();
+    }
+
+    public Command setVolts(double volts){
+        return this.startRun(() -> setVoltage(volts), 
+            this::stopShooter);
     }
 
     public Command spinRPM(double rpm) {
