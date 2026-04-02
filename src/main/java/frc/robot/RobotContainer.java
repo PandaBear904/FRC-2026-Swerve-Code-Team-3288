@@ -25,15 +25,19 @@ import edu.wpi.first.wpilibj.GenericHID;
 import edu.wpi.first.wpilibj.smartdashboard.SendableChooser;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
+import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.commands.Agitator;
+import frc.robot.commands.ChaseColorTarget;
 import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AgitatorSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystemCTRE;
+import frc.robot.subsystems.ColorVisionSubsystem;
+import frc.robot.subsystems.VisionSubsytem;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -57,6 +61,8 @@ public class RobotContainer {
     public final ShooterSubsystemCTRE shooter = new ShooterSubsystemCTRE();
     public final IntakeSubsystem intake = new IntakeSubsystem();
     public final AgitatorSubsystem agitator = new AgitatorSubsystem();
+    public final VisionSubsytem vision = new VisionSubsytem();
+    public final ColorVisionSubsystem colorVision = new ColorVisionSubsystem();
 
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
     private double leftY()  { return driverController.getRawAxis(1); } // LS Y
@@ -148,7 +154,7 @@ public class RobotContainer {
         // JoystickButton xButtonDriver = new JoystickButton(driverController, 2);
         // JoystickButton oButtonDriver = new JoystickButton(driverController, 3);
         JoystickButton triangleButtonDriver = new JoystickButton(driverController, 4);
-        // JoystickButton leftBumperDriver = new JoystickButton(driverController, 5);
+        JoystickButton leftBumperDriver = new JoystickButton(driverController, 5);
         JoystickButton rightBumperDriver = new JoystickButton(driverController, 6);
         JoystickButton leftTriggerDriver = new JoystickButton(driverController, 7);
         JoystickButton rightTriggerDriver = new JoystickButton(driverController, 8);
@@ -181,14 +187,17 @@ public class RobotContainer {
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
 
+        drivetrain.registerTelemetry(logger::telemeterize);
 
+        // Put Motors in brake mode
         leftTriggerDriver.whileTrue(drivetrain.applyRequest(() -> brake));
+
+        // Chase the color target while held; stops when close enough or button released
+        leftBumperDriver.whileTrue(new ChaseColorTarget(drivetrain, colorVision, MaxSpeed, MaxAngularRate));
+        // X config for the wheels
         optionsButtonDriver.whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-leftY(), -leftX()))
         ));
-
-
-        drivetrain.registerTelemetry(logger::telemeterize);
 
         //Intake up
         rightBumperDriver.whileTrue(IntakeCommands.moveUpUntilLimit(intake, intakeUpPower));
@@ -197,12 +206,20 @@ public class RobotContainer {
         //Just run the intake
         triangleButtonDriver.whileTrue(IntakeCommands.runRollerWhileHeld(intake, rollerPower));
         
-        rightTriggerOperator.whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
+        // Shoot only when vision confirms aimed + in range
+        rightTriggerOperator.and(vision::isReadyToShoot)
+            .whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
+
+        // Vision override — shoots regardless, flags dashboard so driver knows
+        triangleButtonOperator
+            .whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower)
+                .alongWith(Commands.run(
+                    () -> SmartDashboard.putBoolean("Vision Override Active", true)))
+                .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));
+
         rightBumperOperator.whileTrue(new Agitator(agitator, agitatorPower));
         leftBumperOperator.whileTrue(new Agitator(agitator, -agitatorPower));
         leftTriggerOperator.whileTrue(shooter.shootWhenReady(reverseShooterPower, (-kickerPower + 0.3)));
-
-        triangleButtonOperator.whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
     }
 
     public Command getAutonomousCommand() {
