@@ -7,8 +7,14 @@ package frc.robot;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static frc.robot.Constants.ControlConstants.*;
-import static frc.robot.Constants.OperatorConstants.*;
+import static frc.robot.Constants.ControlConstants.agitatorPower;
+import static frc.robot.Constants.ControlConstants.intakeDownPower;
+import static frc.robot.Constants.ControlConstants.intakeUpPower;
+import static frc.robot.Constants.ControlConstants.reverseShooterPower;
+import static frc.robot.Constants.ControlConstants.rollerPower;
+import static frc.robot.Constants.ControlConstants.shooterTargetRPM;
+import static frc.robot.Constants.OperatorConstants.driverPort;
+import static frc.robot.Constants.OperatorConstants.operatorPort;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -33,10 +39,10 @@ import frc.robot.commands.ChaseColorTarget;
 import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AgitatorSubsystem;
+import frc.robot.subsystems.ColorVisionSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystemCTRE;
-import frc.robot.subsystems.ColorVisionSubsystem;
 import frc.robot.subsystems.VisionSubsytem;
 
 public class RobotContainer {
@@ -66,6 +72,7 @@ public class RobotContainer {
 
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
     private double leftY()  { return driverController.getRawAxis(1); } // LS Y
+    @SuppressWarnings("unused")
     private double rightX() { return driverController.getRawAxis(5); } // RS X
     private double rightY() { return driverController.getRawAxis(2); } // RS Y
     // Need to have this be the joystick button
