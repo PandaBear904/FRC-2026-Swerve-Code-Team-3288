@@ -17,7 +17,6 @@ public final class Constants {
     //Motor CAN ID
     public static final int shooterLeaderID = 14;
     public static final int shooterFollowerID = 15;
-    public static final int kickerID = 16;
 
   }
 
@@ -58,7 +57,6 @@ public final class Constants {
  public static class ControlConstants {
     public static final double shooterTargetRPM = 5400.0;
     public static final double shooterRPMTolerance = 200;
-    public static final double kickerPower = 0.6;
     public static final double agitatorPower = 6.0;
     public static final double reverseShooterPower = -3000;
 

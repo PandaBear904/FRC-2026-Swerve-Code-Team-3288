@@ -91,7 +91,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Intake", IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower).withTimeout(3));
         NamedCommands.registerCommand("Rev Intake", IntakeCommands.moveUpUntilLimit(intake, intakeUpPower).withTimeout(1.5));
         NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorPower));
-        NamedCommands.registerCommand("Shoot", shooter.shootWhenReady(shooterTargetRPM, kickerPower));
+        NamedCommands.registerCommand("Shoot", shooter.spinRPM(shooterTargetRPM));
 
     }
 
@@ -208,18 +208,18 @@ public class RobotContainer {
         
         // Shoot only when vision confirms aimed + in range
         rightTriggerOperator.and(vision::isReadyToShoot)
-            .whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower));
+            .whileTrue(shooter.spinRPM(shooterTargetRPM));
 
         // Vision override — shoots regardless, flags dashboard so driver knows
         triangleButtonOperator
-            .whileTrue(shooter.shootWhenReady(shooterTargetRPM, kickerPower)
+            .whileTrue(shooter.spinRPM(shooterTargetRPM)
                 .alongWith(Commands.run(
                     () -> SmartDashboard.putBoolean("Vision Override Active", true)))
                 .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));
 
         rightBumperOperator.whileTrue(new Agitator(agitator, agitatorPower));
         leftBumperOperator.whileTrue(new Agitator(agitator, -agitatorPower));
-        leftTriggerOperator.whileTrue(shooter.shootWhenReady(reverseShooterPower, (-kickerPower + 0.3)));
+        leftTriggerOperator.whileTrue(shooter.spinRPM(reverseShooterPower));
     }
 
     public Command getAutonomousCommand() {

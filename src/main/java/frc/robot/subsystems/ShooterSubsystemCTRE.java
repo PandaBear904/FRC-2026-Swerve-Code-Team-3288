@@ -2,7 +2,6 @@ package frc.robot.subsystems;
 
 import static frc.robot.Constants.ControlConstants.shooterRPMTolerance;
 import static frc.robot.Constants.ControlConstants.shooterTargetRPM;
-import static frc.robot.Constants.ShooterConstants.kickerID;
 import static frc.robot.Constants.ShooterConstants.shooterFollowerID;
 import static frc.robot.Constants.ShooterConstants.shooterLeaderID;
 
@@ -14,23 +13,14 @@ import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.revrobotics.PersistMode;
-import com.revrobotics.ResetMode;
-import com.revrobotics.spark.SparkFlex;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
-import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
-import com.revrobotics.spark.config.SparkFlexConfig;
 
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
 import edu.wpi.first.wpilibj2.command.Command;
-import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.SubsystemBase;
-import edu.wpi.first.wpilibj2.command.button.Trigger;
 
 public class ShooterSubsystemCTRE extends SubsystemBase {
     private final TalonFX shooterLeader;
     private final TalonFX shooterFollower;
-    private final SparkFlex kicker;
 
     private final VelocityVoltage velocityReq = new VelocityVoltage(0);
     private final VoltageOut voltageReq = new VoltageOut(0);
@@ -39,7 +29,6 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
     public ShooterSubsystemCTRE(){
         shooterLeader = new TalonFX(shooterLeaderID, "rio");
         shooterFollower = new TalonFX(shooterFollowerID, "rio");
-        kicker = new SparkFlex(kickerID, MotorType.kBrushless);
 
         TalonFXConfiguration cfg = new TalonFXConfiguration();
 
@@ -66,12 +55,6 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
             new Follower(shooterLeader.getDeviceID(), MotorAlignmentValue.Opposed)
         );
 
-        SparkFlexConfig kickerConfig = new SparkFlexConfig();
-        kickerConfig.idleMode(IdleMode.kBrake);
-        kickerConfig.smartCurrentLimit(40);
-        kickerConfig.inverted(false);
-
-        kicker.configure(kickerConfig, ResetMode.kResetSafeParameters, PersistMode.kPersistParameters);
     }
 
     @Override
@@ -96,16 +79,8 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
         return Math.abs(getShooterRPM() - targetRPM) <= shooterRPMTolerance;
     }
 
-    public void kick(double x){
-        kicker.set(x);
-    }
-
     public void stopShooter(){
         shooterLeader.stopMotor();
-    }
-
-    public void stopKicker(){
-        kicker.stopMotor();
     }
 
     public Command setVolts(double volts){
@@ -128,26 +103,4 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
         return this.runOnce(() -> setRPM(rpm))
             .withName("ShooterToggleRPM");
     } 
-    public Command shootWhenReady(double rpm, double kickerPower) {
-        Trigger atSpeed = new Trigger(() -> shooterAtRPM(rpm)).debounce(0.10);
-
-        return Commands.parallel(
-            // Shooter branch (requires this subsystem)
-            this.run(() -> setRPM(rpm)),
-
-            // Kicker branch (NO requirements -> avoids parallel conflict)
-            Commands.sequence(
-                Commands.waitUntil(atSpeed),
-                Commands.runEnd(
-                    () -> kick(kickerPower),
-                    this::stopKicker
-                )
-            )
-        )
-        .finallyDo(interrupted -> {
-            stopKicker();
-            stopShooter();
-        })
-        .withName("ShootWhenReady");
-    }
 }
