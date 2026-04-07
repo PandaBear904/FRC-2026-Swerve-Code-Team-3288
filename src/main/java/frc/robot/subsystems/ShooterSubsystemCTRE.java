@@ -27,6 +27,8 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
 
     
     public ShooterSubsystemCTRE(){
+        SmartDashboard.putNumber("Shooter Target RPM", shooterTargetRPM);
+
         shooterLeader = new TalonFX(shooterLeaderID, "rio");
         shooterFollower = new TalonFX(shooterFollowerID, "rio");
 
@@ -57,10 +59,14 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
 
     }
 
+    public double getTargetRPM() {
+        return SmartDashboard.getNumber("Shooter Target RPM", shooterTargetRPM);
+    }
+
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Shooter RPM", getShooterRPM());
-        SmartDashboard.putBoolean("Shooter At 4000", shooterAtRPM(shooterTargetRPM));
+        SmartDashboard.putBoolean("Shooter At Speed", shooterAtRPM(getTargetRPM()));
     }
 
     public void setRPM(double rpm){
@@ -93,6 +99,13 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
             () -> setRPM(rpm),
             this::stopShooter
         ).withName("ShooterSpinRPM");
+    }
+
+    public Command spinDashboardRPM() {
+        return this.startEnd(
+            () -> setRPM(getTargetRPM()),
+            this::stopShooter
+        ).withName("ShooterSpinDashboardRPM");
     }
 
     public Command stopCommand() {

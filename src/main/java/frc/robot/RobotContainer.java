@@ -12,7 +12,6 @@ import static frc.robot.Constants.ControlConstants.intakeDownPower;
 import static frc.robot.Constants.ControlConstants.intakeUpPower;
 import static frc.robot.Constants.ControlConstants.reverseShooterPower;
 import static frc.robot.Constants.ControlConstants.rollerPower;
-import static frc.robot.Constants.ControlConstants.shooterTargetRPM;
 import static frc.robot.Constants.OperatorConstants.driverPort;
 import static frc.robot.Constants.OperatorConstants.operatorPort;
 
@@ -98,7 +97,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Intake", IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower).withTimeout(3));
         NamedCommands.registerCommand("Rev Intake", IntakeCommands.moveUpUntilLimit(intake, intakeUpPower).withTimeout(1.5));
         NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorPower));
-        NamedCommands.registerCommand("Shoot", shooter.spinRPM(shooterTargetRPM));
+        NamedCommands.registerCommand("Shoot", shooter.spinDashboardRPM());
 
     }
 
@@ -215,11 +214,11 @@ public class RobotContainer {
         
         // Shoot only when vision confirms aimed + in range
         rightTriggerOperator.and(vision::isReadyToShoot)
-            .whileTrue(shooter.spinRPM(shooterTargetRPM));
+            .whileTrue(shooter.spinDashboardRPM());
 
         // Vision override — shoots regardless, flags dashboard so driver knows
         triangleButtonOperator
-            .whileTrue(shooter.spinRPM(shooterTargetRPM)
+            .whileTrue(shooter.spinDashboardRPM()
                 .alongWith(Commands.run(
                     () -> SmartDashboard.putBoolean("Vision Override Active", true)))
                 .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));
