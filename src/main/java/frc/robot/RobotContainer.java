@@ -225,7 +225,9 @@ public class RobotContainer {
 
         rightBumperOperator.whileTrue(new Agitator(agitator, agitatorPower));
         leftBumperOperator.whileTrue(new Agitator(agitator, -agitatorPower));
-        leftTriggerOperator.whileTrue(shooter.spinRPM(reverseShooterPower));
+
+        leftTriggerOperator.and(shooter::canRev)
+            .whileTrue(shooter.spinRPM(reverseShooterPower));
     }
 
     public Command getAutonomousCommand() {

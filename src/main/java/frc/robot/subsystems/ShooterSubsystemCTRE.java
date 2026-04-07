@@ -81,6 +81,10 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
         return shooterLeader.getVelocity().getValueAsDouble() * 60.0;
     }
 
+    public boolean canRev(){
+        return (getShooterRPM() <= 2000);
+    }
+
     public boolean shooterAtRPM(double targetRPM){
         return Math.abs(getShooterRPM() - targetRPM) <= shooterRPMTolerance;
     }
