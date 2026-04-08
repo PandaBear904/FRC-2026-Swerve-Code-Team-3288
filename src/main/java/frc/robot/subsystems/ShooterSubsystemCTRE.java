@@ -4,6 +4,11 @@ import static frc.robot.Constants.ControlConstants.shooterRPMTolerance;
 import static frc.robot.Constants.ControlConstants.shooterTargetRPM;
 import static frc.robot.Constants.ShooterConstants.shooterFollowerID;
 import static frc.robot.Constants.ShooterConstants.shooterLeaderID;
+import static frc.robot.Constants.ShooterConstants.shooterMap;
+
+import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
+
+import java.util.function.DoubleSupplier;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
@@ -25,8 +30,15 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
     private final VelocityVoltage velocityReq = new VelocityVoltage(0);
     private final VoltageOut voltageReq = new VoltageOut(0);
 
-    
+    // Interpolation map: distance (meters) -> RPM
+    private final InterpolatingDoubleTreeMap rpmMap = new InterpolatingDoubleTreeMap();
+
+
     public ShooterSubsystemCTRE(){
+        // Populate the RPM map from the lookup table in Constants
+        for (double[] point : shooterMap) {
+            rpmMap.put(point[0], point[1]);
+        }
         SmartDashboard.putNumber("Shooter Target RPM", shooterTargetRPM);
 
         shooterLeader = new TalonFX(shooterLeaderID, "rio");
@@ -63,10 +75,21 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
         return SmartDashboard.getNumber("Shooter Target RPM", shooterTargetRPM);
     }
 
+    /**
+     * Returns the interpolated target RPM for a given distance to the target.
+     * @param distanceMeters distance from the robot to the target in meters
+     * @return the calculated RPM
+     */
+    public double getRPMFromDistance(double distanceMeters) {
+        return rpmMap.get(distanceMeters);
+    }
+
     @Override
     public void periodic() {
         SmartDashboard.putNumber("Shooter RPM", getShooterRPM());
         SmartDashboard.putBoolean("Shooter At Speed", shooterAtRPM(getTargetRPM()));
+        SmartDashboard.putNumber("Shooter Distance RPM", getRPMFromDistance(
+            SmartDashboard.getNumber("Shooter Test Distance (m)", 1.0)));
     }
 
     public void setRPM(double rpm){
@@ -103,6 +126,28 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
             () -> setRPM(rpm),
             this::stopShooter
         ).withName("ShooterSpinRPM");
+    }
+
+    /**
+     * Spins the shooter at the interpolated RPM for the given distance.
+     * @param distanceMeters distance from the robot to the target in meters
+     */
+    public Command spinFromDistance(double distanceMeters) {
+        return this.startEnd(
+            () -> setRPM(getRPMFromDistance(distanceMeters)),
+            this::stopShooter
+        ).withName("ShooterSpinFromDistance");
+    }
+
+    /**
+     * Spins the shooter using a distance supplier — re-evaluates RPM every loop cycle.
+     * Use this when distance is coming from live vision data so RPM updates as the robot moves.
+     * @param distanceSupplier a supplier that returns the current distance to target in meters
+     */
+    public Command spinFromDistanceSupplier(DoubleSupplier distanceSupplier) {
+        return this.run(() -> setRPM(getRPMFromDistance(distanceSupplier.getAsDouble())))
+            .finallyDo(this::stopShooter)
+            .withName("ShooterSpinFromVision");
     }
 
     public Command spinDashboardRPM() {

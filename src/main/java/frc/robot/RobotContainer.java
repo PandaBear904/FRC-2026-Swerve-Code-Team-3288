@@ -8,6 +8,7 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static frc.robot.Constants.ControlConstants.agitatorPower;
+import static frc.robot.Constants.VisionConstants.desiredShotRangeMeters;
 import static frc.robot.Constants.ControlConstants.intakeDownPower;
 import static frc.robot.Constants.ControlConstants.intakeUpPower;
 import static frc.robot.Constants.ControlConstants.reverseShooterPower;
@@ -212,13 +213,17 @@ public class RobotContainer {
         //Just run the intake
         triangleButtonDriver.whileTrue(IntakeCommands.runRollerWhileHeld(intake, rollerPower));
         
-        // Shoot only when vision confirms aimed + in range
+        // Shoot only when vision confirms aimed + in range — RPM is auto-calculated from distance
         rightTriggerOperator.and(vision::isReadyToShoot)
-            .whileTrue(shooter.spinDashboardRPM());
+            .whileTrue(shooter.spinFromDistanceSupplier(
+                () -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters)
+            ));
 
-        // Vision override — shoots regardless, flags dashboard so driver knows
+        // Vision override — shoots regardless of aim/range check, still uses vision distance if visible
+        // Falls back to desiredShotRangeMeters RPM if vision has no target
         triangleButtonOperator
-            .whileTrue(shooter.spinDashboardRPM()
+            .whileTrue(shooter.spinFromDistanceSupplier(
+                    () -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters))
                 .alongWith(Commands.run(
                     () -> SmartDashboard.putBoolean("Vision Override Active", true)))
                 .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));

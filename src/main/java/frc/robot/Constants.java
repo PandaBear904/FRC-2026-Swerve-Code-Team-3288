@@ -18,6 +18,14 @@ public final class Constants {
     public static final int shooterLeaderID = 14;
     public static final int shooterFollowerID = 15;
 
+    // Distance-to-RPM lookup table
+    // Each row is { distanceMeters, targetRPM }
+    // TODO: Add more rows between min and max for better accuracy
+
+    public static final double[][] shooterMap = {
+      { 1.2446,  3750 },  // min distance (meters) and min RPM
+      { 3.5052,  5400 },  // max distance (meters) and max RPM
+    };
   }
 
   public static class AgitatorConstants {
