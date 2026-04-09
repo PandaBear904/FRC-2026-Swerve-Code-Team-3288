@@ -8,13 +8,13 @@ import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
 import static frc.robot.Constants.ControlConstants.agitatorPower;
-import static frc.robot.Constants.VisionConstants.desiredShotRangeMeters;
 import static frc.robot.Constants.ControlConstants.intakeDownPower;
 import static frc.robot.Constants.ControlConstants.intakeUpPower;
 import static frc.robot.Constants.ControlConstants.reverseShooterPower;
 import static frc.robot.Constants.ControlConstants.rollerPower;
 import static frc.robot.Constants.OperatorConstants.driverPort;
 import static frc.robot.Constants.OperatorConstants.operatorPort;
+import static frc.robot.Constants.VisionConstants.desiredShotRangeMeters;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -221,9 +221,16 @@ public class RobotContainer {
 
         // Vision override — shoots regardless of aim/range check, still uses vision distance if visible
         // Falls back to desiredShotRangeMeters RPM if vision has no target
+        // triangleButtonOperator
+        //     .whileTrue(shooter.spinFromDistanceSupplier(
+        //             () -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters))
+        //         .alongWith(Commands.run(
+        //             () -> SmartDashboard.putBoolean("Vision Override Active", true)))
+        //         .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));
+
+                // Vision override — shoots regardless, flags dashboard so driver knows
         triangleButtonOperator
-            .whileTrue(shooter.spinFromDistanceSupplier(
-                    () -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters))
+            .whileTrue(shooter.spinDashboardRPM()
                 .alongWith(Commands.run(
                     () -> SmartDashboard.putBoolean("Vision Override Active", true)))
                 .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));

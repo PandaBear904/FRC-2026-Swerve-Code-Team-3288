@@ -50,7 +50,7 @@ public class IntakeCommands {
   
   public static Command downThenRoller(IntakeSubsystem intake, double downVolts, double rollerVolts) {
     return moveDownUntilLimit(intake, downVolts)
-        .alongWith(runRollerWhileHeld(intake, rollerVolts));
+        .andThen(runRollerWhileHeld(intake, rollerVolts));
   }
   
 }
