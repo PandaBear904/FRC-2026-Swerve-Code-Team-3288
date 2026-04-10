@@ -6,13 +6,13 @@ import static frc.robot.Constants.IntakeConstats.limitSwitchDown;
 import static frc.robot.Constants.IntakeConstats.limitSwitchUp;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
-import com.ctre.phoenix6.controls.VoltageOut;
+import com.ctre.phoenix6.controls.VelocityVoltage;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.NeutralModeValue;
-import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.PersistMode;
 import com.revrobotics.ResetMode;
+import com.revrobotics.spark.SparkLowLevel.MotorType;
 import com.revrobotics.spark.SparkMax;
 import com.revrobotics.spark.config.SparkBaseConfig.IdleMode;
 import com.revrobotics.spark.config.SparkMaxConfig;
@@ -27,7 +27,7 @@ public class IntakeSubsystem extends SubsystemBase {
     private final DigitalInput intakeLimitDown;
     private final DigitalInput intakeLimitUp;
 
-    private final VoltageOut voltageReq = new VoltageOut(0);
+    private final VelocityVoltage velocityReq = new VelocityVoltage(0);
 
     public IntakeSubsystem(){
         intakeMove = new SparkMax(intakeMoveID, MotorType.kBrushless);
@@ -49,6 +49,12 @@ public class IntakeSubsystem extends SubsystemBase {
 
         cfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
         cfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
+
+        // Velocity control gains — required for VelocityVoltage to work
+        cfg.Slot0.kP = 0.12;
+        cfg.Slot0.kI = 0.0;
+        cfg.Slot0.kD = 0.0;
+        cfg.Slot0.kV = 0.12;
 
         intakeOn.getConfigurator().apply(cfg);
     }
@@ -73,8 +79,9 @@ public class IntakeSubsystem extends SubsystemBase {
         intakeMove.setVoltage(volts);
     }
 
-    public void runIntakeOn(double volts){
-        intakeOn.setControl(voltageReq.withOutput(volts));
+    public void runIntakeOn(double rpm){
+        double rps = rpm / 60.0;
+        intakeOn.setControl(velocityReq.withVelocity(rps));
     }
     
     public void stopMove() {

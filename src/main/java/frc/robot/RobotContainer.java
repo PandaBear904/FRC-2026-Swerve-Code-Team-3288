@@ -7,7 +7,7 @@ package frc.robot;
 import static edu.wpi.first.units.Units.MetersPerSecond;
 import static edu.wpi.first.units.Units.RadiansPerSecond;
 import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static frc.robot.Constants.ControlConstants.agitatorPower;
+import static frc.robot.Constants.AgitatorConstants.agitatorTargetRPM;
 import static frc.robot.Constants.ControlConstants.intakeDownPower;
 import static frc.robot.Constants.ControlConstants.intakeUpPower;
 import static frc.robot.Constants.ControlConstants.reverseShooterPower;
@@ -35,11 +35,9 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.commands.Agitator;
-import frc.robot.commands.ChaseColorTarget;
 import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AgitatorSubsystem;
-import frc.robot.subsystems.ColorVisionSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystemCTRE;
@@ -68,11 +66,9 @@ public class RobotContainer {
     public final IntakeSubsystem intake = new IntakeSubsystem();
     public final AgitatorSubsystem agitator = new AgitatorSubsystem();
     public final VisionSubsytem vision = new VisionSubsytem();
-    public final ColorVisionSubsystem colorVision = new ColorVisionSubsystem();
 
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
     private double leftY()  { return driverController.getRawAxis(1); } // LS Y
-    @SuppressWarnings("unused")
     private double rightX() { return driverController.getRawAxis(5); } // RS X
     private double rightY() { return driverController.getRawAxis(2); } // RS Y
     // Need to have this be the joystick button
@@ -95,9 +91,9 @@ public class RobotContainer {
 
     public void registerNamedCommands(){
         // Set up commands for Auto
-        NamedCommands.registerCommand("Intake", IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower).withTimeout(3));
+        NamedCommands.registerCommand("Intake", IntakeCommands.downAndRoller(intake, intakeDownPower, rollerPower).withTimeout(3));
         NamedCommands.registerCommand("Rev Intake", IntakeCommands.moveUpUntilLimit(intake, intakeUpPower).withTimeout(1.5));
-        NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorPower));
+        NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorTargetRPM));
         NamedCommands.registerCommand("Shoot", shooter.spinDashboardRPM());
 
     }
@@ -145,9 +141,11 @@ public class RobotContainer {
                     if(alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue){
                         x *= -1.0;
                         y *= -1.0;
+                        rot *= 1.0;
                     } else {
                         x *= 1.0;
                         y *= 1.0;
+                        rot *= -1.0;
                     }
 
                     return drive.withVelocityX(x * MaxSpeed * speedMult())
@@ -161,7 +159,7 @@ public class RobotContainer {
         // JoystickButton xButtonDriver = new JoystickButton(driverController, 2);
         // JoystickButton oButtonDriver = new JoystickButton(driverController, 3);
         JoystickButton triangleButtonDriver = new JoystickButton(driverController, 4);
-        JoystickButton leftBumperDriver = new JoystickButton(driverController, 5);
+        // JoystickButton leftBumperDriver = new JoystickButton(driverController, 5);
         JoystickButton rightBumperDriver = new JoystickButton(driverController, 6);
         JoystickButton leftTriggerDriver = new JoystickButton(driverController, 7);
         JoystickButton rightTriggerDriver = new JoystickButton(driverController, 8);
@@ -193,14 +191,12 @@ public class RobotContainer {
         RobotModeTriggers.disabled().whileTrue(
             drivetrain.applyRequest(() -> idle).ignoringDisable(true)
         );
-
+        //Hey don't delete this please
         drivetrain.registerTelemetry(logger::telemeterize);
 
         // Put Motors in brake mode
         leftTriggerDriver.whileTrue(drivetrain.applyRequest(() -> brake));
 
-        // Chase the color target while held; stops when close enough or button released
-        leftBumperDriver.whileTrue(new ChaseColorTarget(drivetrain, colorVision, MaxSpeed, MaxAngularRate));
         // X config for the wheels
         optionsButtonDriver.whileTrue(drivetrain.applyRequest(() ->
             point.withModuleDirection(new Rotation2d(-leftY(), -leftX()))
@@ -209,7 +205,7 @@ public class RobotContainer {
         //Intake up
         rightBumperDriver.whileTrue(IntakeCommands.moveUpUntilLimit(intake, intakeUpPower));
         //Intake down
-        rightTriggerDriver.whileTrue(IntakeCommands.downThenRoller(intake, intakeDownPower, rollerPower));
+        rightTriggerDriver.whileTrue(IntakeCommands.downAndRoller(intake, intakeDownPower, rollerPower));
         //Just run the intake
         triangleButtonDriver.whileTrue(IntakeCommands.runRollerWhileHeld(intake, rollerPower));
         
@@ -235,14 +231,13 @@ public class RobotContainer {
                     () -> SmartDashboard.putBoolean("Vision Override Active", true)))
                 .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));
 
-        rightBumperOperator.whileTrue(new Agitator(agitator, agitatorPower));
-        leftBumperOperator.whileTrue(new Agitator(agitator, -agitatorPower));
+        rightBumperOperator.whileTrue(new Agitator(agitator, agitatorTargetRPM));
+        leftBumperOperator.whileTrue(new Agitator(agitator, -agitatorTargetRPM));
 
         leftTriggerOperator.and(shooter::canRev)
             .whileTrue(shooter.spinRPM(reverseShooterPower));
     }
-
-    public Command getAutonomousCommand() {
+        public Command getAutonomousCommand() {
         return autoChooser.getSelected();
     }
 }

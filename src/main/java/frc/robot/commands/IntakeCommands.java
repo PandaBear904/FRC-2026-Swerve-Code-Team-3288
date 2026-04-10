@@ -48,9 +48,19 @@ public class IntakeCommands {
   }
 
   
-  public static Command downThenRoller(IntakeSubsystem intake, double downVolts, double rollerVolts) {
-    return moveDownUntilLimit(intake, downVolts)
-        .andThen(runRollerWhileHeld(intake, rollerVolts));
+  public static Command downAndRoller(IntakeSubsystem intake, double downVolts, double rollerRPM) {
+    return Commands.run(() -> {
+          if (intake.isDownLimitPressed()) {
+            intake.stopMove();
+          } else {
+            intake.runIntakeMove(downVolts);
+          }
+          intake.runIntakeOn(rollerRPM);
+        }, intake)
+        .finallyDo(interrupted -> {
+          intake.stopMove();
+          intake.stopOn();
+        });
   }
   
 }

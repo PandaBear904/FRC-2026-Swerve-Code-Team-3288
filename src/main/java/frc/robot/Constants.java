@@ -31,11 +31,20 @@ public final class Constants {
   public static class AgitatorConstants {
     public static final int agitatorLeftID = 17;
     public static final int agitatorRightID = 18;
+
+    // Target RPM for agitator — TODO: tune this for your robot
+    public static final double agitatorTargetRPM = 3000.0;
+
+    // Closed-loop PID + feedforward gains for SparkFlex velocity control
+    // kFF = 1 / Vortex free speed RPM (~6784) — tune kP if RPM is not tracking well
+    public static final double agitatorKP  = 0.0001;
+    public static final double agitatorKI  = 0.0;
+    public static final double agitatorKD  = 0.0;
+    public static final double agitatorKFF = 0.000148;
   }
 
   public static class VisionConstants{
     public static final String aprilTagCameraName = "AprilTag";
-    public static final String colorCameraName = "Color";
 
     //Range from pitch (all in meters)
     public static final double cameraHeightMeters = 0.35;
@@ -51,8 +60,6 @@ public final class Constants {
     // TODO: Tune this to the max distance you can reliably score from
     public static final double desiredShotRangeMeters = 2.0;
 
-    // TODO: Tune — stop chasing color target when its area fills this % of the image
-    public static final double colorChaseStopAreaPercent = 5.0;
   }
 
   public static class IntakeConstats {
@@ -63,14 +70,13 @@ public final class Constants {
  }
 
  public static class ControlConstants {
-    public static final double shooterTargetRPM = 5400.0;
+    public static final double shooterTargetRPM = 3750.0;
     public static final double shooterRPMTolerance = 200;
-    public static final double agitatorPower = 6.0;
     public static final double reverseShooterPower = -3000;
 
     public static final double intakeUpPower = 8.0;
     public static final double intakeDownPower = -6.0;
-    public static final double rollerPower = 6.0;
+    public static final double rollerPower = 3500; //This is in RPM I too lazy to change the name
  }
 
 }

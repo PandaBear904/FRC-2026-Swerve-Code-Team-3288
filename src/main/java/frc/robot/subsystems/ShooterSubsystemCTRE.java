@@ -13,7 +13,6 @@ import java.util.function.DoubleSupplier;
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.Follower;
 import com.ctre.phoenix6.controls.VelocityVoltage;
-import com.ctre.phoenix6.controls.VoltageOut;
 import com.ctre.phoenix6.hardware.TalonFX;
 import com.ctre.phoenix6.signals.InvertedValue;
 import com.ctre.phoenix6.signals.MotorAlignmentValue;
@@ -28,7 +27,6 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
     private final TalonFX shooterFollower;
 
     private final VelocityVoltage velocityReq = new VelocityVoltage(0);
-    private final VoltageOut voltageReq = new VoltageOut(0);
 
     // Interpolation map: distance (meters) -> RPM
     private final InterpolatingDoubleTreeMap rpmMap = new InterpolatingDoubleTreeMap();
@@ -96,16 +94,14 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
         double rps = rpm / 60.0;
         shooterLeader.setControl(velocityReq.withVelocity(rps));
     }
-    public void setVoltage(double volts){
-        shooterLeader.setControl(voltageReq.withOutput(volts));
-    }
+
 
     public double getShooterRPM() {
         return shooterLeader.getVelocity().getValueAsDouble() * 60.0;
     }
 
     public boolean canRev(){
-        return (getShooterRPM() <= 2000);
+        return (getShooterRPM() <= 1000);
     }
 
     public boolean shooterAtRPM(double targetRPM){
@@ -116,10 +112,6 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
         shooterLeader.stopMotor();
     }
 
-    public Command setVolts(double volts){
-        return this.startRun(() -> setVoltage(volts), 
-            this::stopShooter);
-    }
 
     public Command spinRPM(double rpm) {
         return this.startEnd(
