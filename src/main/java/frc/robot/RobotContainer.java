@@ -69,6 +69,7 @@ public class RobotContainer {
 
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
     private double leftY()  { return driverController.getRawAxis(1); } // LS Y
+    @SuppressWarnings("unused")
     private double rightX() { return driverController.getRawAxis(5); } // RS X
     private double rightY() { return driverController.getRawAxis(2); } // RS Y
     // Need to have this be the joystick button
@@ -93,8 +94,8 @@ public class RobotContainer {
         // Set up commands for Auto
         NamedCommands.registerCommand("Intake", IntakeCommands.downAndRoller(intake, intakeDownPower, rollerPower).withTimeout(3));
         NamedCommands.registerCommand("Rev Intake", IntakeCommands.moveUpUntilLimit(intake, intakeUpPower).withTimeout(1.5));
-        NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorTargetRPM));
-        NamedCommands.registerCommand("Shoot", shooter.spinDashboardRPM());
+        NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorTargetRPM).withTimeout(5));
+        NamedCommands.registerCommand("Shoot", shooter.spinDashboardRPM().withTimeout(5));
 
     }
 
@@ -209,6 +210,14 @@ public class RobotContainer {
         //Just run the intake
         triangleButtonDriver.whileTrue(IntakeCommands.runRollerWhileHeld(intake, rollerPower));
         
+        // Switch AprilTag camera to detection mode while either shoot button is held,
+        // then back to driver mode when released
+        rightTriggerOperator.or(triangleButtonOperator)
+            .whileTrue(Commands.startEnd(
+                () -> vision.setAprilTagDriverMode(false),
+                () -> vision.setAprilTagDriverMode(true)
+            ).ignoringDisable(false));
+
         // Shoot only when vision confirms aimed + in range — RPM is auto-calculated from distance
         rightTriggerOperator.and(vision::isReadyToShoot)
             .whileTrue(shooter.spinFromDistanceSupplier(

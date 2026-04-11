@@ -17,10 +17,26 @@ import static frc.robot.Constants.VisionConstants.*;
 
 public class VisionSubsytem extends SubsystemBase {
     private final PhotonCamera camera;
+    private final PhotonCamera driverCamera;
     private PhotonPipelineResult latestResult = new PhotonPipelineResult();
 
     public VisionSubsytem() {
         camera = new PhotonCamera(aprilTagCameraName);
+
+        // Driver camera — always in driver mode for low-latency streaming
+        driverCamera = new PhotonCamera(driverCameraName);
+        driverCamera.setDriverMode(true);
+
+        // Start AprilTag camera in driver mode; switches to detection when aiming
+        camera.setDriverMode(true);
+    }
+
+    /**
+     * Switches the AprilTag camera between detection mode (for targeting)
+     * and driver mode (for low-latency streaming when not aiming).
+     */
+    public void setAprilTagDriverMode(boolean driverMode) {
+        camera.setDriverMode(driverMode);
     }
 
     @Override

@@ -45,7 +45,7 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
         TalonFXConfiguration cfg = new TalonFXConfiguration();
 
         cfg.MotorOutput.NeutralMode = NeutralModeValue.Coast;
-        cfg.MotorOutput.Inverted = InvertedValue.CounterClockwise_Positive;
+        cfg.MotorOutput.Inverted = InvertedValue.Clockwise_Positive;
 
         // Current limits
         cfg.CurrentLimits.SupplyCurrentLimitEnable = true;

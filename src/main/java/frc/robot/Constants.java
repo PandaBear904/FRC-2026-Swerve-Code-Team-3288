@@ -32,7 +32,7 @@ public final class Constants {
     public static final int agitatorLeftID = 17;
     public static final int agitatorRightID = 18;
 
-    // Target RPM for agitator — TODO: tune this for your robot
+    // Target RPM for agitator
     public static final double agitatorTargetRPM = 3000.0;
 
     // Closed-loop PID + feedforward gains for SparkFlex velocity control
@@ -44,7 +44,8 @@ public final class Constants {
   }
 
   public static class VisionConstants{
-    public static final String aprilTagCameraName = "AprilTag";
+    public static final String aprilTagCameraName = "AprilTags";
+    public static final String driverCameraName = "Driver";
 
     //Range from pitch (all in meters)
     public static final double cameraHeightMeters = 0.35;
