@@ -61,8 +61,6 @@ public class RobotContainer {
     public final AgitatorSubsystem agitator = new AgitatorSubsystem();
     public final VisionSubsytem vision = new VisionSubsytem();
 
-    // Duration of each scoring shift in seconds — verify against the 2026 game manual
-    private static final double SCORING_WINDOW_SECONDS = 15.0;
 
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
     private double leftY()  { return driverController.getRawAxis(1); } // LS Y
@@ -251,38 +249,40 @@ public class RobotContainer {
     }
 
     // Returns true if it is currently our alliance's scoring window.
-    // The FMS sends 'R' or 'B' — whichever matches scores on even-numbered shifts (2, 4...).
-    // The other alliance scores on odd-numbered shifts (1, 3...).
-    // TODO: verify even/odd shift assignment against the 2026 game manual.
+    //
+    // The FMS game-specific message directly tells us which HUB is currently active:
+    //   "A" = AUTO shift — both alliances' HUBS are active
+    //   "T" = TRANSITION SHIFT — both alliances' HUBS are active
+    //   "R" = Red alliance's HUB is active (only Red may score)
+    //   "B" = Blue alliance's HUB is active (only Blue may score)
+    //
+    // Because isTeleop() is checked first, "A" is effectively unreachable here,
+    // but it is handled for completeness.
     public boolean isInScoringWindow() {
         if (!DriverStation.isTeleop() || !DriverStation.isEnabled()) return false;
 
         String gameData = DriverStation.getGameSpecificMessage();
         if (gameData == null || gameData.isEmpty()) return false;
 
-        double matchTime = DriverStation.getMatchTime();
-        if (matchTime < 0) return false;
-
-        // Calculate how far into teleop we are (teleop = 135 seconds total)
-        double elapsed = Math.max(0.0, 135.0 - matchTime);
-        int currentShift = (int)(elapsed / SCORING_WINDOW_SECONDS) + 1;
-        boolean isEvenShift = (currentShift % 2 == 0);
-
-        // Check which alliance scores on even shifts
         var alliance = DriverStation.getAlliance();
         if (alliance.isEmpty()) return false;
         boolean weAreRed = alliance.get() == Alliance.Red;
-        boolean gameDataIsRed = gameData.startsWith("R");
 
-        // If game data matches our alliance, we score on even shifts; otherwise odd
-        return (weAreRed == gameDataIsRed) ? isEvenShift : !isEvenShift;
+        switch (gameData.toUpperCase().trim()) {
+            case "T": return true;       // TRANSITION — both alliances can score
+            case "R": return weAreRed;   // Red HUB active — only Red scores
+            case "B": return !weAreRed;  // Blue HUB active — only Blue scores
+            case "A": return true;       // AUTO — both HUBS active (gated by isTeleop above)
+            default:  return false;
+        }
     }
 
-    // Returns how many seconds are left in the current scoring window (0 if not our window)
+    // Returns how many seconds remain in the match while our scoring window is active.
+    // Note: this reflects time left in the MATCH, not time left in the current shift,
+    // since the FMS does not publish per-shift durations directly.
     public double getScoringTimeRemaining() {
         if (!isInScoringWindow()) return 0.0;
-        double elapsed = Math.max(0.0, 135.0 - DriverStation.getMatchTime());
-        return Math.max(0.0, SCORING_WINDOW_SECONDS - (elapsed % SCORING_WINDOW_SECONDS));
+        return Math.max(0.0, DriverStation.getMatchTime());
     }
 
     public Command getAutonomousCommand() {
