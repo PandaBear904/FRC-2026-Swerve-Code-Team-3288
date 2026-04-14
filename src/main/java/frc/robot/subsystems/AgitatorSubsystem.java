@@ -49,7 +49,7 @@ public class AgitatorSubsystem extends SubsystemBase {
      * considered jammed. E.g. 0.25 means less than 25% of target speed = jam.
      * Tune this on the real robot.
      */
-    private static final double JAM_THRESHOLD_FRACTION = 0.25;
+    private static final double JAM_THRESHOLD_FRACTION = 0.5;
 
     public AgitatorSubsystem() {
         agitatorLeft  = new SparkFlex(agitatorLeftID,  MotorType.kBrushless);

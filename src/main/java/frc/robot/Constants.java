@@ -4,6 +4,10 @@
 
 package frc.robot;
 
+import edu.wpi.first.math.geometry.Rotation3d;
+import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.util.Units;
+
 public final class Constants {
 
     public static class OperatorConstants {
@@ -43,24 +47,28 @@ public final class Constants {
     public static final double agitatorKFF = 0.000148;
   }
 
-  public static class VisionConstants{
+  public static class VisionConstants {
     public static final String aprilTagCameraName = "AprilTags";
     public static final String driverCameraName = "Driver";
 
-    //Range from pitch (all in meters)
-    public static final double cameraHeightMeters = 0.35;
-    public static final double targetHeightMeters = 0.45;
-    public static final double cameraPitchRadians = Math.toRadians(20.0);
+    // Camera position relative to the shooter/robot center.
+    // X = forward, Y = left, Z = up (WPILib convention).
+    // Camera is 6 inches to the RIGHT of the shooter (-Y), same height, tilted up 3 degrees (-pitch).
+    public static final Transform3d kRobotToCamera = new Transform3d(
+        0.0,                        // X: no forward/back offset
+        -Units.inchesToMeters(6),   // Y: 6 inches to the right (negative = right in WPILib)
+        0.0,                        // Z: same height as shooter
+        new Rotation3d(0, Units.degreesToRadians(-3), 0) // tilted up 3 degrees
+    );
 
     public static final double aimToleranceDeg = 1.5;
     public static final double rangeToleranceM = 0.10;
 
-    public static final int[] redTagIds  = { 2, 3, 4, 5, 8, 11};
-    public static final int[] blueTagIds = { 18, 21, 24, 25, 26, 27};
+    public static final int[] redTagIds  = { 2, 3, 4, 5, 8, 11 };
+    public static final int[] blueTagIds = { 18, 21, 24, 25, 26, 27 };
 
     // TODO: Tune this to the max distance you can reliably score from
-    public static final double desiredShotRangeMeters = 2.0;
-
+    public static final double desiredShotRangeMeters = 3.5052;
   }
 
   public static class IntakeConstants {
@@ -77,7 +85,7 @@ public final class Constants {
 
     public static final double intakeUpPower = 8.0;
     public static final double intakeDownPower = -6.0;
-    public static final double rollerPower = 3500; //This is in RPM I too lazy to change the name
+    public static final double rollerPower = 4000; //This is in RPM I too lazy to change the name
  }
 
 }

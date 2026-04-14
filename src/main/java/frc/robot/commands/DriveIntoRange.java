@@ -11,6 +11,12 @@ import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
+/**
+ * Rotates the robot in place to face the best visible alliance goal tag.
+ * Uses the alliance-aware getBestGoalTarget() from VisionSubsystem so red/blue
+ * tag filtering is handled automatically. The robot holds position (vx/vy = 0)
+ * and only applies a rotational rate until the yaw error is within tolerance.
+ */
 public class DriveIntoRange extends Command {
     private final CommandSwerveDrivetrain drivetrain;
     private final VisionSubsystem vision;
@@ -18,14 +24,9 @@ public class DriveIntoRange extends Command {
     private final Supplier<SwerveRequest> stopRequest;
     private final SwerveRequest.RobotCentric driveRequest;
 
-    private final int tagId;
-    private final double desiredRangeM;
-
-    //Will need to mess with theses
-    private final PIDController rangePID = new PIDController(1.2, 0.0, 0.0);
+    // Will need to tune
     private final PIDController yawPID = new PIDController(4.0, 0.0, 0.25);
 
-    private final double maxSpeedMps;
     private final double maxOmegaRadPerSec;
 
     public DriveIntoRange(
@@ -33,65 +34,43 @@ public class DriveIntoRange extends Command {
         VisionSubsystem vision,
         SwerveRequest.RobotCentric driveRequest,
         Supplier<SwerveRequest> stopRequest,
-        int tagId,
-        double desiredRangeM,
-        double maxSpeedMps,
         double maxOmegaRadPerSec
     ) {
         this.drivetrain = drivetrain;
         this.vision = vision;
         this.driveRequest = driveRequest;
         this.stopRequest = stopRequest;
-        this.tagId = tagId;
-        this.desiredRangeM = desiredRangeM;
-        this.maxSpeedMps = maxSpeedMps;
         this.maxOmegaRadPerSec = maxOmegaRadPerSec;
 
-        rangePID.setTolerance(0.10); // 10cm
-        yawPID.setTolerance(2.0);
+        yawPID.setTolerance(Units.degreesToRadians(2.0)); // 2 degree tolerance
 
         addRequirements(drivetrain);
     }
 
     @Override
     public void initialize() {
-        rangePID.reset();
         yawPID.reset();
     }
 
     @Override
     public void execute() {
-        //If no tag nothing happens
-        if (!vision.hasTargets() || vision.getTag(tagId).isEmpty()){
-            drivetrain.setControl(stopRequest.get());
-            return;
-        }
+        // Use alliance-aware best goal tag — no tag visible means hold still
+        var yawDegOpt = vision.getGoalYawDeg();
 
-        var yawDegOpt = vision.getTagYawDeg(tagId);
-        var distOpt = vision.getTagDistanceMeters(tagId);
-
-        if (yawDegOpt.isEmpty() || distOpt.isEmpty()){
+        if (yawDegOpt.isEmpty()) {
             drivetrain.setControl(stopRequest.get());
             return;
         }
 
         double yawRad = Units.degreesToRadians(yawDegOpt.get());
-        double distM = distOpt.get();
 
-        //forward/back speeds
-        double vxCmd = rangePID.calculate(distM, desiredRangeM);
-        
-        //Rotate to center yaw
+        // Rotate to center yaw, hold position
         double omegaCmd = yawPID.calculate(yawRad, 0.0);
-
-        //clamp
-        vxCmd = MathUtil.clamp(vxCmd, -maxSpeedMps * 0.6, maxSpeedMps * 0.6);
         omegaCmd = MathUtil.clamp(omegaCmd, -maxOmegaRadPerSec, maxOmegaRadPerSec);
 
-        //Drive :YIPPIEEE:
         drivetrain.setControl(
             driveRequest
-                .withVelocityX(vxCmd)
+                .withVelocityX(0.0)
                 .withVelocityY(0.0)
                 .withRotationalRate(omegaCmd)
         );
@@ -101,9 +80,9 @@ public class DriveIntoRange extends Command {
     public void end(boolean interrupted) {
         drivetrain.setControl(stopRequest.get());
     }
-    
+
     @Override
     public boolean isFinished() {
-        return rangePID.atSetpoint() && yawPID.atSetpoint();
+        return yawPID.atSetpoint();
     }
 }

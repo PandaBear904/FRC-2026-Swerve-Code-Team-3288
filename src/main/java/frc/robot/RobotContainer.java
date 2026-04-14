@@ -29,6 +29,7 @@ import edu.wpi.first.wpilibj2.command.Commands;
 import edu.wpi.first.wpilibj2.command.button.JoystickButton;
 import edu.wpi.first.wpilibj2.command.button.RobotModeTriggers;
 import frc.robot.commands.Agitator;
+import frc.robot.commands.DriveIntoRange;
 import frc.robot.commands.IntakeCommands;
 import frc.robot.generated.TunerConstants;
 import frc.robot.subsystems.AgitatorSubsystem;
@@ -38,8 +39,8 @@ import frc.robot.subsystems.ShooterSubsystemCTRE;
 import frc.robot.subsystems.VisionSubsystem;
 
 public class RobotContainer {
-    private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
-    private double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
+    private final double MaxSpeed = TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // desired top speed
+    private final double MaxAngularRate = RotationsPerSecond.of(0.75).in(RadiansPerSecond); // 3/4 of a rotation per second max angular velocity
 
     /* Setting up bindings for necessary control of the swerve drive platform */
     private final SwerveRequest.FieldCentric drive = new SwerveRequest.FieldCentric()
@@ -70,6 +71,7 @@ public class RobotContainer {
     // Need to have this be the joystick button
     private double speedMult() { return driverController.getRawButton(11) ? 0.25 : 0.75; }
 
+    private final SwerveRequest.RobotCentric turnRequest = new SwerveRequest.RobotCentric();
     private final SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
 
 
@@ -91,7 +93,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Rev Intake", IntakeCommands.moveUpUntilLimit(intake, intakeUpPower).withTimeout(1.5));
         NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorTargetRPM).withTimeout(5));
         NamedCommands.registerCommand("Shoot", shooter.spinFromDistanceSupplier(() -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters)));
-
+        NamedCommands.registerCommand("TurnToTarget", new DriveIntoRange(drivetrain, vision, turnRequest, () -> brake, MaxAngularRate).withTimeout(1.2));
     }
 
      private void configureAutoBuilder(){
@@ -134,15 +136,12 @@ public class RobotContainer {
                 double rot = rightY();
 
                 var alliance = DriverStation.getAlliance();
-                    if(alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue){
-                        x *= -1.0;
-                        y *= -1.0;
-                        rot *= 1.0;
-                    } else {
-                        x *= 1.0;
-                        y *= 1.0;
-                        rot *= -1.0;
-                    }
+                if (alliance.isPresent() && alliance.get() == DriverStation.Alliance.Blue) {
+                    x *= -1.0;
+                    y *= -1.0;
+                } else {
+                    rot *= -1.0;
+                }
 
                     return drive.withVelocityX(x * MaxSpeed * speedMult())
                                 .withVelocityY(y * MaxSpeed * speedMult())
@@ -152,7 +151,7 @@ public class RobotContainer {
 
         // Below are the driver controller buttons
         // JoystickButton squareButtonDriver = new JoystickButton(driverController, 1);
-        // JoystickButton xButtonDriver = new JoystickButton(driverController, 2);
+        JoystickButton xButtonDriver = new JoystickButton(driverController, 2);
         // JoystickButton oButtonDriver = new JoystickButton(driverController, 3);
         JoystickButton triangleButtonDriver = new JoystickButton(driverController, 4);
         // JoystickButton leftBumperDriver = new JoystickButton(driverController, 5);
@@ -179,8 +178,6 @@ public class RobotContainer {
         // JoystickButton leftJoystickDownOperator = new JoystickButton(operatorController, 11);
         // JoystickButton rightJoystickDownOperator = new JoystickButton(operatorController, 12);
 
-
-
         // Idle while the robot is disabled. This ensures the configured
         // neutral mode is applied to the drive motors while disabled.
         final var idle = new SwerveRequest.Idle();
@@ -189,6 +186,9 @@ public class RobotContainer {
         );
         //Hey don't delete this please
         drivetrain.registerTelemetry(logger::telemeterize);
+
+        // Turn to face best alliance goal tag
+        xButtonDriver.whileTrue(new DriveIntoRange(drivetrain, vision, turnRequest, () -> brake, MaxAngularRate));
 
         // Put Motors in brake mode
         leftTriggerDriver.whileTrue(drivetrain.applyRequest(() -> brake));
@@ -211,9 +211,15 @@ public class RobotContainer {
             SmartDashboard.putNumber("Scoring Time Remaining (s)", getScoringTimeRemaining());
         }));
 
+        // Keep AprilTag camera in detection mode for the entire auto period
+        RobotModeTriggers.autonomous().whileTrue(Commands.startEnd(
+            () -> vision.setAprilTagDriverMode(false),
+            () -> vision.setAprilTagDriverMode(true)
+        ).ignoringDisable(false));
+
         // Switch AprilTag camera to detection mode while either shoot button is held,
         // then back to driver mode when released
-        rightTriggerOperator.or(triangleButtonOperator)
+        rightTriggerOperator.or(triangleButtonOperator).or(xButtonDriver)
             .whileTrue(Commands.startEnd(
                 () -> vision.setAprilTagDriverMode(false),
                 () -> vision.setAprilTagDriverMode(true)

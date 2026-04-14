@@ -7,7 +7,7 @@ import org.photonvision.PhotonCamera;
 import org.photonvision.targeting.PhotonPipelineResult;
 import org.photonvision.targeting.PhotonTrackedTarget;
 
-import edu.wpi.first.math.geometry.Transform3d;
+import edu.wpi.first.math.geometry.Pose3d;
 import edu.wpi.first.wpilibj.DriverStation;
 import edu.wpi.first.wpilibj.DriverStation.Alliance;
 import edu.wpi.first.wpilibj.smartdashboard.SmartDashboard;
@@ -51,11 +51,20 @@ public class VisionSubsystem extends SubsystemBase {
         SmartDashboard.putBoolean("Aimed at Goal", aimed);
         SmartDashboard.putBoolean("In Range",      inRange);
 
+        getGoalDistanceMeters().ifPresent(d -> SmartDashboard.putNumber("Distance to Goal (m)", d));
         getBestGoalTarget().ifPresent(t -> {
-            SmartDashboard.putNumber("Distance to Goal (m)", t.getBestCameraToTarget().getTranslation().getNorm());
-            SmartDashboard.putNumber("Yaw to Goal (deg)",    t.getYaw());
-            SmartDashboard.putNumber("Goal Tag ID",          t.getFiducialId());
+            SmartDashboard.putNumber("Yaw to Goal (deg)", t.getYaw());
+            SmartDashboard.putNumber("Goal Tag ID",       t.getFiducialId());
         });
+
+        // Show all currently visible tag IDs as a comma-separated string
+        String visibleTags = latestResult.hasTargets()
+            ? latestResult.getTargets().stream()
+                .map(t -> String.valueOf(t.getFiducialId()))
+                .reduce((a, b) -> a + ", " + b)
+                .orElse("None")
+            : "None";
+        SmartDashboard.putString("Visible Tags", visibleTags);
     }
 
     // Returns the tag IDs for whichever alliance we are currently on.
@@ -84,11 +93,17 @@ public class VisionSubsystem extends SubsystemBase {
         return getBestGoalTarget().map(PhotonTrackedTarget::getYaw);
     }
 
-    // Distance (meters) to the best visible goal tag
+    // Horizontal distance (meters) from the shooter to the best visible goal tag.
+    // Accounts for the camera's side offset and upward tilt so the RPM lookup
+    // reflects true shooter-to-target distance rather than raw camera-to-tag distance.
     public Optional<Double> getGoalDistanceMeters() {
         return getBestGoalTarget().map(t -> {
-            Transform3d camToTarget = t.getBestCameraToTarget();
-            return camToTarget.getTranslation().getNorm();
+            Pose3d targetInRobotFrame = new Pose3d()
+                .transformBy(kRobotToCamera)
+                .transformBy(t.getBestCameraToTarget());
+            double x = targetInRobotFrame.getX();
+            double y = targetInRobotFrame.getY();
+            return Math.sqrt(x * x + y * y); // horizontal only, ignore Z
         });
     }
 
@@ -127,7 +142,14 @@ public class VisionSubsystem extends SubsystemBase {
     }
 
     public Optional<Double> getTagDistanceMeters(int tagId) {
-        return getTag(tagId).map(t -> t.getBestCameraToTarget().getTranslation().getNorm());
+        return getTag(tagId).map(t -> {
+            Pose3d targetInRobotFrame = new Pose3d()
+                .transformBy(kRobotToCamera)
+                .transformBy(t.getBestCameraToTarget());
+            double x = targetInRobotFrame.getX();
+            double y = targetInRobotFrame.getY();
+            return Math.sqrt(x * x + y * y);
+        });
     }
 
     public boolean isAimedAtTag(int tagId) {
