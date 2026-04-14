@@ -15,12 +15,12 @@ import edu.wpi.first.wpilibj2.command.SubsystemBase;
 
 import static frc.robot.Constants.VisionConstants.*;
 
-public class VisionSubsytem extends SubsystemBase {
+public class VisionSubsystem extends SubsystemBase {
     private final PhotonCamera camera;
     private final PhotonCamera driverCamera;
     private PhotonPipelineResult latestResult = new PhotonPipelineResult();
 
-    public VisionSubsytem() {
+    public VisionSubsystem() {
         camera = new PhotonCamera(aprilTagCameraName);
 
         // Driver camera — always in driver mode for low-latency streaming

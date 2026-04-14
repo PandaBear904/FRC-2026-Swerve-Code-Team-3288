@@ -151,7 +151,9 @@ public class ShooterSubsystemCTRE extends SubsystemBase {
     }
 
     public Command toggleRPM(double rpm){
-        return this.runOnce(() -> setRPM(rpm))
+        // startEnd ensures the shooter stops when the command is cancelled or finishes.
+        // Previously used runOnce(), which set RPM but never stopped the motor.
+        return this.startEnd(() -> setRPM(rpm), this::stopShooter)
             .withName("ShooterToggleRPM");
-    } 
+    }
 }

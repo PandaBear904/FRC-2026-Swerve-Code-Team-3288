@@ -63,7 +63,7 @@ public final class Constants {
 
   }
 
-  public static class IntakeConstats {
+  public static class IntakeConstants {
     public static final int intakeMoveID = 19;
     public static final int intakeOnID = 20;
     public static final int limitSwitchDown = 0;

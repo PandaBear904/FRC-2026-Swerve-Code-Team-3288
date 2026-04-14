@@ -35,7 +35,7 @@ import frc.robot.subsystems.AgitatorSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import frc.robot.subsystems.IntakeSubsystem;
 import frc.robot.subsystems.ShooterSubsystemCTRE;
-import frc.robot.subsystems.VisionSubsytem;
+import frc.robot.subsystems.VisionSubsystem;
 
 public class RobotContainer {
     private double MaxSpeed = 1.0 * TunerConstants.kSpeedAt12Volts.in(MetersPerSecond); // kSpeedAt12Volts desired top speed
@@ -59,7 +59,7 @@ public class RobotContainer {
     public final ShooterSubsystemCTRE shooter = new ShooterSubsystemCTRE();
     public final IntakeSubsystem intake = new IntakeSubsystem();
     public final AgitatorSubsystem agitator = new AgitatorSubsystem();
-    public final VisionSubsytem vision = new VisionSubsytem();
+    public final VisionSubsystem vision = new VisionSubsystem();
 
 
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
@@ -235,7 +235,7 @@ public class RobotContainer {
         //         .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));
 
         // Vision override — shoots regardless of aim/range, but still requires scoring window
-        triangleButtonOperator.and(this::isInScoringWindow)
+        triangleButtonOperator
             .whileTrue(shooter.spinDashboardRPM()
                 .alongWith(Commands.run(
                     () -> SmartDashboard.putBoolean("Vision Override Active", true)))

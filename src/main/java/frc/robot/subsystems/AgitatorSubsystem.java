@@ -106,6 +106,10 @@ public class AgitatorSubsystem extends SubsystemBase {
                     isUnjamming = false;
                     unjamTimer.stop();
                     unjamTimer.reset();
+                    // Restart the spin-up grace timer so jam detection doesn't fire again
+                    // immediately while the motors are still recovering from the reversal.
+                    spinUpTimer.reset();
+                    spinUpTimer.start();
                     leftController.setReference(targetRPM,  ControlType.kVelocity, ClosedLoopSlot.kSlot0);
                     rightController.setReference(targetRPM, ControlType.kVelocity, ClosedLoopSlot.kSlot0);
                 }
@@ -134,10 +138,14 @@ public class AgitatorSubsystem extends SubsystemBase {
     }
 
     public void setRPM(double rpm) {
-        targetRPM = rpm;
-        // Reset the spin-up grace timer so jam detection doesn't fire immediately
-        spinUpTimer.reset();
-        spinUpTimer.start();
+        // Only restart the spin-up grace timer when the target RPM actually changes.
+        // Without this guard, calling setRPM() every 20ms from a command's execute()
+        // would reset the timer continuously and jam detection would never activate.
+        if (rpm != targetRPM) {
+            targetRPM = rpm;
+            spinUpTimer.reset();
+            spinUpTimer.start();
+        }
 
         if (!isUnjamming) {
             leftController.setReference(rpm,  ControlType.kVelocity, ClosedLoopSlot.kSlot0);

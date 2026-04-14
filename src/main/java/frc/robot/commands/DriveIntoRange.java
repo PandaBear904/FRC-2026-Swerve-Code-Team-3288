@@ -7,13 +7,13 @@ import edu.wpi.first.math.controller.PIDController;
 import edu.wpi.first.math.util.Units;
 import edu.wpi.first.wpilibj2.command.Command;
 
-import frc.robot.subsystems.VisionSubsytem;
+import frc.robot.subsystems.VisionSubsystem;
 import frc.robot.subsystems.CommandSwerveDrivetrain;
 import com.ctre.phoenix6.swerve.SwerveRequest;
 
 public class DriveIntoRange extends Command {
     private final CommandSwerveDrivetrain drivetrain;
-    private final VisionSubsytem vision;
+    private final VisionSubsystem vision;
 
     private final Supplier<SwerveRequest> stopRequest;
     private final SwerveRequest.RobotCentric driveRequest;
@@ -30,7 +30,7 @@ public class DriveIntoRange extends Command {
 
     public DriveIntoRange(
         CommandSwerveDrivetrain drivetrain,
-        VisionSubsytem vision,
+        VisionSubsystem vision,
         SwerveRequest.RobotCentric driveRequest,
         Supplier<SwerveRequest> stopRequest,
         int tagId,
