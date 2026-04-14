@@ -188,3 +188,6 @@ compile_commands.json
 
 # Claude Code
 .claude/
+
+# Notes files
+Practice-field.txt
