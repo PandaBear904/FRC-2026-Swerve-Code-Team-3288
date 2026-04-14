@@ -4,17 +4,11 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.MetersPerSecond;
-import static edu.wpi.first.units.Units.RadiansPerSecond;
-import static edu.wpi.first.units.Units.RotationsPerSecond;
-import static frc.robot.Constants.AgitatorConstants.agitatorTargetRPM;
-import static frc.robot.Constants.ControlConstants.intakeDownPower;
-import static frc.robot.Constants.ControlConstants.intakeUpPower;
-import static frc.robot.Constants.ControlConstants.reverseShooterPower;
-import static frc.robot.Constants.ControlConstants.rollerPower;
-import static frc.robot.Constants.OperatorConstants.driverPort;
-import static frc.robot.Constants.OperatorConstants.operatorPort;
-import static frc.robot.Constants.VisionConstants.desiredShotRangeMeters;
+import static edu.wpi.first.units.Units.*;
+import static frc.robot.Constants.AgitatorConstants.*;
+import static frc.robot.Constants.ControlConstants.*;
+import static frc.robot.Constants.OperatorConstants.*;
+import static frc.robot.Constants.VisionConstants.*;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -67,6 +61,9 @@ public class RobotContainer {
     public final AgitatorSubsystem agitator = new AgitatorSubsystem();
     public final VisionSubsytem vision = new VisionSubsytem();
 
+    // Duration of each scoring shift in seconds — verify against the 2026 game manual
+    private static final double SCORING_WINDOW_SECONDS = 15.0;
+
     private double leftX()  { return driverController.getRawAxis(0); } // LS X
     private double leftY()  { return driverController.getRawAxis(1); } // LS Y
     @SuppressWarnings("unused")
@@ -95,7 +92,7 @@ public class RobotContainer {
         NamedCommands.registerCommand("Intake", IntakeCommands.downAndRoller(intake, intakeDownPower, rollerPower).withTimeout(3));
         NamedCommands.registerCommand("Rev Intake", IntakeCommands.moveUpUntilLimit(intake, intakeUpPower).withTimeout(1.5));
         NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorTargetRPM).withTimeout(5));
-        NamedCommands.registerCommand("Shoot", shooter.spinDashboardRPM().withTimeout(5));
+        NamedCommands.registerCommand("Shoot", shooter.spinFromDistanceSupplier(() -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters)));
 
     }
 
@@ -210,6 +207,12 @@ public class RobotContainer {
         //Just run the intake
         triangleButtonDriver.whileTrue(IntakeCommands.runRollerWhileHeld(intake, rollerPower));
         
+        // Continuously update the scoring window countdown on SmartDashboard during teleop
+        RobotModeTriggers.teleop().whileTrue(Commands.run(() -> {
+            SmartDashboard.putBoolean("Scoring Window Active", isInScoringWindow());
+            SmartDashboard.putNumber("Scoring Time Remaining (s)", getScoringTimeRemaining());
+        }));
+
         // Switch AprilTag camera to detection mode while either shoot button is held,
         // then back to driver mode when released
         rightTriggerOperator.or(triangleButtonOperator)
@@ -218,8 +221,8 @@ public class RobotContainer {
                 () -> vision.setAprilTagDriverMode(true)
             ).ignoringDisable(false));
 
-        // Shoot only when vision confirms aimed + in range — RPM is auto-calculated from distance
-        rightTriggerOperator.and(vision::isReadyToShoot)
+        // Shoot only when vision confirms aimed + in range AND within scoring window
+        rightTriggerOperator.and(vision::isReadyToShoot).and(this::isInScoringWindow)
             .whileTrue(shooter.spinFromDistanceSupplier(
                 () -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters)
             ));
@@ -233,8 +236,8 @@ public class RobotContainer {
         //             () -> SmartDashboard.putBoolean("Vision Override Active", true)))
         //         .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));
 
-                // Vision override — shoots regardless, flags dashboard so driver knows
-        triangleButtonOperator
+        // Vision override — shoots regardless of aim/range, but still requires scoring window
+        triangleButtonOperator.and(this::isInScoringWindow)
             .whileTrue(shooter.spinDashboardRPM()
                 .alongWith(Commands.run(
                     () -> SmartDashboard.putBoolean("Vision Override Active", true)))
@@ -246,7 +249,43 @@ public class RobotContainer {
         leftTriggerOperator.and(shooter::canRev)
             .whileTrue(shooter.spinRPM(reverseShooterPower));
     }
-        public Command getAutonomousCommand() {
+
+    // Returns true if it is currently our alliance's scoring window.
+    // The FMS sends 'R' or 'B' — whichever matches scores on even-numbered shifts (2, 4...).
+    // The other alliance scores on odd-numbered shifts (1, 3...).
+    // TODO: verify even/odd shift assignment against the 2026 game manual.
+    public boolean isInScoringWindow() {
+        if (!DriverStation.isTeleop() || !DriverStation.isEnabled()) return false;
+
+        String gameData = DriverStation.getGameSpecificMessage();
+        if (gameData == null || gameData.isEmpty()) return false;
+
+        double matchTime = DriverStation.getMatchTime();
+        if (matchTime < 0) return false;
+
+        // Calculate how far into teleop we are (teleop = 135 seconds total)
+        double elapsed = Math.max(0.0, 135.0 - matchTime);
+        int currentShift = (int)(elapsed / SCORING_WINDOW_SECONDS) + 1;
+        boolean isEvenShift = (currentShift % 2 == 0);
+
+        // Check which alliance scores on even shifts
+        var alliance = DriverStation.getAlliance();
+        if (alliance.isEmpty()) return false;
+        boolean weAreRed = alliance.get() == Alliance.Red;
+        boolean gameDataIsRed = gameData.startsWith("R");
+
+        // If game data matches our alliance, we score on even shifts; otherwise odd
+        return (weAreRed == gameDataIsRed) ? isEvenShift : !isEvenShift;
+    }
+
+    // Returns how many seconds are left in the current scoring window (0 if not our window)
+    public double getScoringTimeRemaining() {
+        if (!isInScoringWindow()) return 0.0;
+        double elapsed = Math.max(0.0, 135.0 - DriverStation.getMatchTime());
+        return Math.max(0.0, SCORING_WINDOW_SECONDS - (elapsed % SCORING_WINDOW_SECONDS));
+    }
+
+    public Command getAutonomousCommand() {
         return autoChooser.getSelected();
     }
 }

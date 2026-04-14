@@ -1,10 +1,7 @@
 package frc.robot.subsystems;
 
-import static frc.robot.Constants.ControlConstants.shooterRPMTolerance;
-import static frc.robot.Constants.ControlConstants.shooterTargetRPM;
-import static frc.robot.Constants.ShooterConstants.shooterFollowerID;
-import static frc.robot.Constants.ShooterConstants.shooterLeaderID;
-import static frc.robot.Constants.ShooterConstants.shooterMap;
+import static frc.robot.Constants.ControlConstants.*;
+import static frc.robot.Constants.ShooterConstants.*;
 
 import edu.wpi.first.math.interpolation.InterpolatingDoubleTreeMap;
 

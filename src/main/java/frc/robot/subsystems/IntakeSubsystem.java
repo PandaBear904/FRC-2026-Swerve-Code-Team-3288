@@ -1,9 +1,6 @@
 package frc.robot.subsystems;
 
-import static frc.robot.Constants.IntakeConstats.intakeMoveID;
-import static frc.robot.Constants.IntakeConstats.intakeOnID;
-import static frc.robot.Constants.IntakeConstats.limitSwitchDown;
-import static frc.robot.Constants.IntakeConstats.limitSwitchUp;
+import static frc.robot.Constants.IntakeConstats.*;
 
 import com.ctre.phoenix6.configs.TalonFXConfiguration;
 import com.ctre.phoenix6.controls.VelocityVoltage;
