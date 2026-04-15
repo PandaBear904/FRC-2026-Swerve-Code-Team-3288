@@ -67,7 +67,6 @@ public final class Constants {
     public static final int[] redTagIds  = { 2, 3, 4, 5, 8, 11 };
     public static final int[] blueTagIds = { 18, 21, 24, 25, 26, 27 };
 
-    // TODO: Tune this to the max distance you can reliably score from
     public static final double desiredShotRangeMeters = 3.5052;
   }
 

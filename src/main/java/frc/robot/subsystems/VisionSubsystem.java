@@ -124,41 +124,4 @@ public class VisionSubsystem extends SubsystemBase {
         return isAimedAtGoal() && isInRangeOfGoal();
     }
 
-    // --- Generic tag lookup (still available for other uses) ---
-
-    public boolean hasTargets() {
-        return latestResult.hasTargets();
-    }
-
-    public Optional<PhotonTrackedTarget> getTag(int tagId) {
-        if (!latestResult.hasTargets()) return Optional.empty();
-        return latestResult.getTargets().stream()
-            .filter(t -> t.getFiducialId() == tagId)
-            .max((a, b) -> Double.compare(a.getArea(), b.getArea()));
-    }
-
-    public Optional<Double> getTagYawDeg(int tagId) {
-        return getTag(tagId).map(PhotonTrackedTarget::getYaw);
-    }
-
-    public Optional<Double> getTagDistanceMeters(int tagId) {
-        return getTag(tagId).map(t -> {
-            Pose3d targetInRobotFrame = new Pose3d()
-                .transformBy(kRobotToCamera)
-                .transformBy(t.getBestCameraToTarget());
-            double x = targetInRobotFrame.getX();
-            double y = targetInRobotFrame.getY();
-            return Math.sqrt(x * x + y * y);
-        });
-    }
-
-    public boolean isAimedAtTag(int tagId) {
-        var yaw = getTagYawDeg(tagId);
-        return yaw.isPresent() && Math.abs(yaw.get()) <= aimToleranceDeg;
-    }
-
-    public boolean isInRangeOfTag(int tagId, double desiredRangeMeters) {
-        var dist = getTagDistanceMeters(tagId);
-        return dist.isPresent() && dist.get() <= (desiredRangeMeters + rangeToleranceM);
-    }
 }
