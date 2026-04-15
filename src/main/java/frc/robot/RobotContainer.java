@@ -81,8 +81,7 @@ public class RobotContainer {
 
         // Set up AutoChooser
         autoChooser.setDefaultOption("Do Nothing", AutoBuilder.buildAuto("Do Nothing"));
-        autoChooser.addOption("Intake Test", AutoBuilder.buildAuto("Intake Only Auto"));
-        autoChooser.addOption("Test Auto", AutoBuilder.buildAuto("Test Auto"));
+        autoChooser.addOption("Two Cycle Left Side", AutoBuilder.buildAuto("Two Cycle Left Side"));
         SmartDashboard.putData("Auto Chooser", autoChooser);
         configureBindings();
     }
@@ -91,9 +90,9 @@ public class RobotContainer {
         // Set up commands for Auto
         NamedCommands.registerCommand("Intake", IntakeCommands.downAndRoller(intake, intakeDownPower, rollerPower).withTimeout(3));
         NamedCommands.registerCommand("Rev Intake", IntakeCommands.moveUpUntilLimit(intake, intakeUpPower).withTimeout(1.5));
-        NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorTargetRPM).withTimeout(5));
-        NamedCommands.registerCommand("Shoot", shooter.spinFromDistanceSupplier(() -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters)));
-        NamedCommands.registerCommand("TurnToTarget", new DriveIntoRange(drivetrain, vision, turnRequest, () -> brake, MaxAngularRate).withTimeout(1.2));
+        NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorTargetRPM).withTimeout(4));
+        NamedCommands.registerCommand("Shoot", shooter.spinFromDistanceSupplier(() -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters)).withTimeout(4));
+        NamedCommands.registerCommand("TurnToTarget", new DriveIntoRange(drivetrain, vision, turnRequest, () -> brake, MaxAngularRate).withTimeout(1));
     }
 
      private void configureAutoBuilder(){
@@ -226,22 +225,22 @@ public class RobotContainer {
             ).ignoringDisable(false));
 
         // Shoot only when vision confirms aimed + in range AND within scoring window
-        rightTriggerOperator.and(vision::isReadyToShoot).and(this::isInScoringWindow)
-            .whileTrue(shooter.spinFromDistanceSupplier(
-                () -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters)
-            ));
+        // rightTriggerOperator.and(vision::isReadyToShoot).and(this::isInScoringWindow)
+        //     .whileTrue(shooter.spinFromDistanceSupplier(
+        //         () -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters)
+        //     ));
 
         // Vision override — shoots regardless of aim/range check, still uses vision distance if visible
         // Falls back to desiredShotRangeMeters RPM if vision has no target
-        // triangleButtonOperator
-        //     .whileTrue(shooter.spinFromDistanceSupplier(
-        //             () -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters))
-        //         .alongWith(Commands.run(
-        //             () -> SmartDashboard.putBoolean("Vision Override Active", true)))
-        //         .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));
+        triangleButtonOperator
+            .whileTrue(shooter.spinFromDistanceSupplier(
+                    () -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters))
+                .alongWith(Commands.run(
+                    () -> SmartDashboard.putBoolean("Vision Override Active", true)))
+                .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));
 
         // Vision override — shoots regardless of aim/range, but still requires scoring window
-        triangleButtonOperator
+        rightTriggerOperator
             .whileTrue(shooter.spinDashboardRPM()
                 .alongWith(Commands.run(
                     () -> SmartDashboard.putBoolean("Vision Override Active", true)))

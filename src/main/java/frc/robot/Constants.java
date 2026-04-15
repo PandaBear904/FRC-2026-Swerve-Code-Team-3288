@@ -84,7 +84,7 @@ public final class Constants {
 
     public static final double intakeUpPower = 8.0;
     public static final double intakeDownPower = -6.0;
-    public static final double rollerPower = 4000; //This is in RPM I too lazy to change the name
+    public static final double rollerPower = 5400; //This is in RPM I too lazy to change the name
  }
 
 }
