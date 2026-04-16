@@ -42,14 +42,14 @@ public class AgitatorSubsystem extends SubsystemBase {
      * How long (seconds) after setRPM() is called before jam detection activates.
      * Prevents a false-positive while the motors are still spinning up.
      */
-    private static final double SPINUP_GRACE = 1.0;
+    private static final double SPINUP_GRACE = 1.5;
 
     /**
      * If a motor's velocity is below this fraction of the target RPM, it is
      * considered jammed. E.g. 0.25 means less than 25% of target speed = jam.
      * Tune this on the real robot.
      */
-    private static final double JAM_THRESHOLD_FRACTION = 0.5;
+    private static final double JAM_THRESHOLD_FRACTION = 0.25;
 
     public AgitatorSubsystem() {
         agitatorLeft  = new SparkFlex(agitatorLeftID,  MotorType.kBrushless);

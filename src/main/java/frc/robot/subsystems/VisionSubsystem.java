@@ -51,7 +51,15 @@ public class VisionSubsystem extends SubsystemBase {
         SmartDashboard.putBoolean("Aimed at Goal", aimed);
         SmartDashboard.putBoolean("In Range",      inRange);
 
-        getGoalDistanceMeters().ifPresent(d -> SmartDashboard.putNumber("Distance to Goal (m)", d));
+        // Show whether the camera is detecting anything at all (before alliance filtering)
+        SmartDashboard.putBoolean("Camera Has Targets", latestResult.hasTargets());
+        SmartDashboard.putBoolean("Camera In Driver Mode", camera.getDriverMode());
+
+        // Show distance — explicitly show -1 if vision has no valid target so it's obvious on the dashboard
+        double distanceM = getGoalDistanceMeters().orElse(-1.0);
+        SmartDashboard.putNumber("Distance to Goal (m)", distanceM);
+        SmartDashboard.putBoolean("Vision Has Distance", distanceM >= 0);
+
         getBestGoalTarget().ifPresent(t -> {
             SmartDashboard.putNumber("Yaw to Goal (deg)", t.getYaw());
             SmartDashboard.putNumber("Goal Tag ID",       t.getFiducialId());
@@ -65,6 +73,10 @@ public class VisionSubsystem extends SubsystemBase {
                 .orElse("None")
             : "None";
         SmartDashboard.putString("Visible Tags", visibleTags);
+
+        // Show which alliance tag IDs we're currently filtering for
+        int[] allianceIds = getAllianceTagIds();
+        SmartDashboard.putString("Alliance Tag IDs", Arrays.toString(allianceIds));
     }
 
     // Returns the tag IDs for whichever alliance we are currently on.

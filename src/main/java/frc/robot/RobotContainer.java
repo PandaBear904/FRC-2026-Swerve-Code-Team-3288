@@ -63,13 +63,13 @@ public class RobotContainer {
     public final VisionSubsystem vision = new VisionSubsystem();
 
 
-    private double leftX()  { return driverController.getRawAxis(0); } // LS X
-    private double leftY()  { return driverController.getRawAxis(1); } // LS Y
+    private double leftX()  { return driverController.isConnected() ? driverController.getRawAxis(0) : 0.0; } // LS X
+    private double leftY()  { return driverController.isConnected() ? driverController.getRawAxis(1) : 0.0; } // LS Y
     @SuppressWarnings("unused")
-    private double rightX() { return driverController.getRawAxis(5); } // RS X
-    private double rightY() { return driverController.getRawAxis(2); } // RS Y
+    private double rightX() { return driverController.isConnected() ? driverController.getRawAxis(5) : 0.0; } // RS X
+    private double rightY() { return driverController.isConnected() ? driverController.getRawAxis(2) : 0.0; } // RS Y
     // Need to have this be the joystick button
-    private double speedMult() { return driverController.getRawButton(11) ? 0.25 : 0.75; }
+    private double speedMult() { return driverController.isConnected() && driverController.getRawButton(11) ? 0.25 : 0.75; }
 
     private final SwerveRequest.RobotCentric turnRequest = new SwerveRequest.RobotCentric();
     private final SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
