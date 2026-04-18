@@ -5,11 +5,11 @@ import frc.robot.subsystems.AgitatorSubsystem;
 
 public class Agitator extends Command{
     private final AgitatorSubsystem agitator;
-    private final double rpm;
+    private final double volts;
 
-    public Agitator(AgitatorSubsystem agitator, double rpm){
+    public Agitator(AgitatorSubsystem agitator, double volts){
         this.agitator = agitator;
-        this.rpm = rpm;
+        this.volts = volts;
         addRequirements(agitator);
     }
 
@@ -18,7 +18,7 @@ public class Agitator extends Command{
 
     @Override
     public void execute(){
-        agitator.setRPM(rpm);
+        agitator.setVoltage(volts);
     }
 
     @Override

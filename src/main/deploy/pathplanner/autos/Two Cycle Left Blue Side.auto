@@ -62,7 +62,7 @@
               {
                 "type": "path",
                 "data": {
-                  "pathName": "Left Bump Only 2"
+                  "pathName": "Left Bump Only"
                 }
               },
               {
@@ -129,6 +129,6 @@
     }
   },
   "resetOdom": true,
-  "folder": "Left Side",
+  "folder": "Blue",
   "choreoAuto": false
 }

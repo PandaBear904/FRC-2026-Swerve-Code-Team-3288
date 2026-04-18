@@ -28,23 +28,15 @@ public final class Constants {
 
     public static final double[][] shooterMap = {
       { 1.2446,  3750 },  // min distance (meters) and min RPM
-      { 3.5052,  5400 },  // max distance (meters) and max RPM
+      { 3.5052,  5400 }  // max distance (meters) and max RPM
     };
   }
 
   public static class AgitatorConstants {
     public static final int agitatorLeftID = 17;
     public static final int agitatorRightID = 18;
-
-    // Target RPM for agitator
-    public static final double agitatorTargetRPM = 3000.0;
-
-    // Closed-loop PID + feedforward gains for SparkFlex velocity control
-    // kFF = 1 / Vortex free speed RPM (~6784) — tune kP if RPM is not tracking well
-    public static final double agitatorKP  = 0.0001;
-    public static final double agitatorKI  = 0.0;
-    public static final double agitatorKD  = 0.0;
-    public static final double agitatorKFF = 0.000148;
+    // Target Volts for agitator
+    public static final double agitatorVolts = 3.5;
   }
 
   public static class VisionConstants {
@@ -53,12 +45,12 @@ public final class Constants {
 
     // Camera position relative to the shooter/robot center.
     // X = forward, Y = left, Z = up (WPILib convention).
-    // Camera is 6 inches to the RIGHT of the shooter (-Y), same height, tilted up 3 degrees (-pitch).
+    // Camera is 9 inches to the RIGHT of the shooter (-Y), same height, tilted up 3 degrees (-pitch).
     public static final Transform3d kRobotToCamera = new Transform3d(
-        0.0,                        // X: no forward/back offset
-        -Units.inchesToMeters(6),   // Y: 6 inches to the right (negative = right in WPILib)
-        0.0,                        // Z: same height as shooter
-        new Rotation3d(0, Units.degreesToRadians(-3), 0) // tilted up 3 degrees
+        Units.inchesToMeters(0),      // X: forward/back offset
+        -Units.inchesToMeters(9),    // Y: left/right offset
+        Units.inchesToMeters(0),    // Z: up/down offset
+        new Rotation3d(0, Units.degreesToRadians(-5), 0) // tilted up 3 degrees
     );
 
     public static final double aimToleranceDeg = 1.5;

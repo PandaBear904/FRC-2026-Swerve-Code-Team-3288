@@ -69,7 +69,7 @@ public class IntakeSubsystem extends SubsystemBase {
 
     // true when the UP limit switch is physically pressed
     public boolean isUpLimitPressed() {
-        return !intakeLimitUp.get(); 
+        return intakeLimitUp.get(); 
     }
 
     public void runIntakeMove(double volts){

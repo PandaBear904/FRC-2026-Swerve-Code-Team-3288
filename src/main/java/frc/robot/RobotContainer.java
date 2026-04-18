@@ -4,11 +4,17 @@
 
 package frc.robot;
 
-import static edu.wpi.first.units.Units.*;
-import static frc.robot.Constants.AgitatorConstants.*;
-import static frc.robot.Constants.ControlConstants.*;
-import static frc.robot.Constants.OperatorConstants.*;
-import static frc.robot.Constants.VisionConstants.*;
+import static edu.wpi.first.units.Units.MetersPerSecond;
+import static edu.wpi.first.units.Units.RadiansPerSecond;
+import static edu.wpi.first.units.Units.RotationsPerSecond;
+import static frc.robot.Constants.AgitatorConstants.agitatorVolts;
+import static frc.robot.Constants.ControlConstants.intakeDownPower;
+import static frc.robot.Constants.ControlConstants.intakeUpPower;
+import static frc.robot.Constants.ControlConstants.reverseShooterPower;
+import static frc.robot.Constants.ControlConstants.rollerPower;
+import static frc.robot.Constants.OperatorConstants.driverPort;
+import static frc.robot.Constants.OperatorConstants.operatorPort;
+import static frc.robot.Constants.VisionConstants.desiredShotRangeMeters;
 
 import com.ctre.phoenix6.swerve.SwerveModule.DriveRequestType;
 import com.ctre.phoenix6.swerve.SwerveRequest;
@@ -69,7 +75,8 @@ public class RobotContainer {
     private double rightX() { return driverController.isConnected() ? driverController.getRawAxis(5) : 0.0; } // RS X
     private double rightY() { return driverController.isConnected() ? driverController.getRawAxis(2) : 0.0; } // RS Y
     // Need to have this be the joystick button
-    private double speedMult() { return driverController.isConnected() && driverController.getRawButton(11) ? 0.25 : 0.75; }
+    private double speedMult() { return driverController.isConnected() && driverController.getRawButton(11) ? 0.33 : 0.66; }
+    private double fullSpeed() { return driverController.isConnected() && driverController.getRawButton(12) ? 0.66: 1.0;}
 
     private final SwerveRequest.RobotCentric turnRequest = new SwerveRequest.RobotCentric();
     private final SwerveRequest.ApplyRobotSpeeds m_pathApplyRobotSpeeds = new SwerveRequest.ApplyRobotSpeeds();
@@ -78,19 +85,15 @@ public class RobotContainer {
     public RobotContainer() {
         registerNamedCommands();
         configureAutoBuilder();
-
-        // Set up AutoChooser
-        autoChooser.setDefaultOption("Do Nothing", AutoBuilder.buildAuto("Do Nothing"));
-        autoChooser.addOption("Two Cycle Left Side", AutoBuilder.buildAuto("Two Cycle Left Side"));
-        SmartDashboard.putData("Auto Chooser", autoChooser);
+        autoSetUp();
         configureBindings();
     }
 
     public void registerNamedCommands(){
         // Set up commands for Auto
-        NamedCommands.registerCommand("Intake", IntakeCommands.downAndRoller(intake, intakeDownPower, rollerPower).withTimeout(3));
-        NamedCommands.registerCommand("Rev Intake", IntakeCommands.moveUpUntilLimit(intake, intakeUpPower).withTimeout(1.5));
-        NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorTargetRPM).withTimeout(4));
+        NamedCommands.registerCommand("Intake", IntakeCommands.downAndRoller(intake, intakeDownPower, rollerPower).withTimeout(7));
+        NamedCommands.registerCommand("Rev Intake", IntakeCommands.moveUpUntilLimit(intake, intakeUpPower).withTimeout(1));
+        NamedCommands.registerCommand("Agitator", new Agitator(agitator, agitatorVolts).withTimeout(4));
         NamedCommands.registerCommand("Shoot", shooter.spinFromDistanceSupplier(() -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters)).withTimeout(4));
         NamedCommands.registerCommand("TurnToTarget", new DriveIntoRange(drivetrain, vision, turnRequest, () -> brake, MaxAngularRate).withTimeout(1));
     }
@@ -122,6 +125,25 @@ public class RobotContainer {
         }
     }
 
+    private void autoSetUp(){
+        // Default Do nothing
+        autoChooser.setDefaultOption("Do Nothing", AutoBuilder.buildAuto("Do Nothing"));   
+
+        autoChooser.addOption("2 Cycle Right Blue", AutoBuilder.buildAuto("Two Cycle Right Blue Side"));
+        autoChooser.addOption("1 Cycle Right Blue", AutoBuilder.buildAuto("One Cycle Right Blue Side"));
+        autoChooser.addOption("2 Cycle Left Blue", AutoBuilder.buildAuto("Two Cycle Left Blue Side"));
+        autoChooser.addOption("1 Cycle Left Blue", AutoBuilder.buildAuto("One Cycle Left Blue Side"));
+        autoChooser.addOption("Backup and Shoot Blue", AutoBuilder.buildAuto("Backup and Shoot Center Blue"));
+        // autoChooser.addOption("2 Cycle Right Red", AutoBuilder.buildAuto("Two Cycle Right Red Side"));
+        autoChooser.addOption("1 Cycle Right Red", AutoBuilder.buildAuto("One Cycle Right Red Side"));
+        // autoChooser.addOption("2 Cycle Left Red", AutoBuilder.buildAuto("Two Cycle Left Red Side"));
+        autoChooser.addOption("1 Cycle Left Red", AutoBuilder.buildAuto("One Cycle Left Red Side"));
+        autoChooser.addOption("Backup and Shoot Red", AutoBuilder.buildAuto("Backup and Shoot Center Red"));
+        // Send data to SmartDashboard
+        SmartDashboard.putData("Auto Chooser", autoChooser);
+
+    }
+
     private void configureBindings() {
         // Note that X is defined as forward according to WPILib convention,
         // and Y is defined as to the left according to WPILib convention.
@@ -142,9 +164,9 @@ public class RobotContainer {
                     rot *= -1.0;
                 }
 
-                    return drive.withVelocityX(x * MaxSpeed * speedMult())
-                                .withVelocityY(y * MaxSpeed * speedMult())
-                                .withRotationalRate(rot * MaxAngularRate * speedMult());
+                    return drive.withVelocityX(x * MaxSpeed * (speedMult() / fullSpeed()))
+                                .withVelocityY(y * MaxSpeed * (speedMult() / fullSpeed()))
+                                .withRotationalRate(rot * MaxAngularRate * (speedMult()) + 0.14);
             })
         );
 
@@ -203,12 +225,6 @@ public class RobotContainer {
         rightTriggerDriver.whileTrue(IntakeCommands.downAndRoller(intake, intakeDownPower, rollerPower));
         //Just run the intake
         triangleButtonDriver.whileTrue(IntakeCommands.runRollerWhileHeld(intake, rollerPower));
-        
-        // Continuously update the scoring window countdown on SmartDashboard during teleop
-        RobotModeTriggers.teleop().whileTrue(Commands.run(() -> {
-            SmartDashboard.putBoolean("Scoring Window Active", isInScoringWindow());
-            SmartDashboard.putNumber("Scoring Time Remaining (s)", getScoringTimeRemaining());
-        }));
 
         // Keep AprilTag camera in detection mode for the entire auto period
         RobotModeTriggers.autonomous().whileTrue(Commands.startEnd(
@@ -234,10 +250,7 @@ public class RobotContainer {
         // Falls back to desiredShotRangeMeters RPM if vision has no target
         triangleButtonOperator
             .whileTrue(shooter.spinFromDistanceSupplier(
-                    () -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters))
-                .alongWith(Commands.run(
-                    () -> SmartDashboard.putBoolean("Vision Override Active", true)))
-                .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));
+                    () -> vision.getGoalDistanceMeters().orElse(desiredShotRangeMeters)));
 
         // Vision override — shoots regardless of aim/range, but still requires scoring window
         rightTriggerOperator
@@ -246,49 +259,13 @@ public class RobotContainer {
                     () -> SmartDashboard.putBoolean("Vision Override Active", true)))
                 .finallyDo(() -> SmartDashboard.putBoolean("Vision Override Active", false)));
 
-        rightBumperOperator.whileTrue(new Agitator(agitator, agitatorTargetRPM));
-        leftBumperOperator.whileTrue(new Agitator(agitator, -agitatorTargetRPM));
+        rightBumperOperator.whileTrue(new Agitator(agitator, agitatorVolts));
+        leftBumperOperator.whileTrue(new Agitator(agitator, -agitatorVolts));
 
         leftTriggerOperator.and(shooter::canRev)
             .whileTrue(shooter.spinRPM(reverseShooterPower));
     }
 
-    // Returns true if it is currently our alliance's scoring window.
-    //
-    // The FMS game-specific message directly tells us which HUB is currently active:
-    //   "A" = AUTO shift — both alliances' HUBS are active
-    //   "T" = TRANSITION SHIFT — both alliances' HUBS are active
-    //   "R" = Red alliance's HUB is active (only Red may score)
-    //   "B" = Blue alliance's HUB is active (only Blue may score)
-    //
-    // Because isTeleop() is checked first, "A" is effectively unreachable here,
-    // but it is handled for completeness.
-    public boolean isInScoringWindow() {
-        if (!DriverStation.isTeleop() || !DriverStation.isEnabled()) return false;
-
-        String gameData = DriverStation.getGameSpecificMessage();
-        if (gameData == null || gameData.isEmpty()) return false;
-
-        var alliance = DriverStation.getAlliance();
-        if (alliance.isEmpty()) return false;
-        boolean weAreRed = alliance.get() == Alliance.Red;
-
-        switch (gameData.toUpperCase().trim()) {
-            case "T": return true;       // TRANSITION — both alliances can score
-            case "R": return weAreRed;   // Red HUB active — only Red scores
-            case "B": return !weAreRed;  // Blue HUB active — only Blue scores
-            case "A": return true;       // AUTO — both HUBS active (gated by isTeleop above)
-            default:  return false;
-        }
-    }
-
-    // Returns how many seconds remain in the match while our scoring window is active.
-    // Note: this reflects time left in the MATCH, not time left in the current shift,
-    // since the FMS does not publish per-shift durations directly.
-    public double getScoringTimeRemaining() {
-        if (!isInScoringWindow()) return 0.0;
-        return Math.max(0.0, DriverStation.getMatchTime());
-    }
 
     public Command getAutonomousCommand() {
         return autoChooser.getSelected();
